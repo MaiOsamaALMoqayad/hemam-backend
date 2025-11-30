@@ -9,6 +9,7 @@ class AnnualProgramSeeder extends Seeder
 {
     public function run(): void
     {
+        AnnualProgram::truncate();
         $programs = [
             [
                 'title' => ['ar' => 'رواحل المجد', 'en' => 'Glory Caravans'],

@@ -20,8 +20,15 @@ class AppServiceProvider extends ServiceProvider
     /**
      * Bootstrap any application services.
      */
-    public function boot(): void
-    {
+   public function boot(): void
+{
+    // Force Arabic as default
+    app()->setLocale('ar');
+
+    // Rate Limiting كما هو موجود
+    RateLimiter::for('api', function (Request $request) {
+        return Limit::perMinute(60)->by($request->ip());
+    });
         // Rate Limiting للـ API العام
         RateLimiter::for('api', function (Request $request) {
             return Limit::perMinute(60)->by($request->ip());

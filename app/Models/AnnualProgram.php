@@ -37,29 +37,20 @@ class AnnualProgram extends Model
     }
 
     /**
-     * Get translated title
+     * ترجمة الحقل حسب اللغة الحالية
      */
-    public function getTitleAttribute($value)
+    public function getTranslated(string $field): string
     {
-        $data = json_decode($value, true);
+        $data = $this->{$field}; // بسبب $casts، القيمة مصفوفة جاهزة
         $locale = app()->getLocale();
+
         return $data[$locale] ?? $data['ar'] ?? '';
     }
 
     /**
-     * Get translated description
+     * رابط الصورة الكامل
      */
-    public function getDescriptionAttribute($value)
-    {
-        $data = json_decode($value, true);
-        $locale = app()->getLocale();
-        return $data[$locale] ?? $data['ar'] ?? '';
-    }
-
-    /**
-     * Get full image URL
-     */
-    public function getImageUrlAttribute()
+    public function getImageUrlAttribute(): ?string
     {
         return $this->image ? asset('storage/' . $this->image) : null;
     }

@@ -18,7 +18,7 @@ class CampSeeder extends Seeder
             'title' => ['ar' => 'مخيم صيف 2025', 'en' => 'Summer Camp 2025'],
             'description' => ['ar' => 'مخيم تدريبي صيفي', 'en' => 'A summer training camp'],
             'about' => ['ar' => 'مخيم شامل لتطوير المهارات', 'en' => 'Comprehensive camp for skill development'],
-            'main_image' => 'camps/camp3.jpeg',
+            'main_image' => 'camps/main-camp3.jpeg',
             'age_range' => '14-17',
             'start_date' => '2025-07-15',
             'duration' => 7,

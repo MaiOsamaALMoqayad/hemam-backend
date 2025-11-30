@@ -12,14 +12,14 @@ class TrainerSeeder extends Seeder
         $trainers = [
             [
                 'name' => ['ar' => 'أحمد محمد', 'en' => 'Ahmad Mohammad'],
-                'image' => 'trainers/trainer1.jpg',
+                'image' => 'trainers/T2.jpg',
                 'bio' => ['ar' => 'مدرب معتمد في القيادة', 'en' => 'Certified leadership trainer'],
                 'order' => 1,
                 'is_active' => true,
             ],
             [
                 'name' => ['ar' => 'فاطمة أحمد', 'en' => 'Fatima Ahmad'],
-                'image' => 'trainers/trainer2.jpg',
+                'image' => 'trainers/T1.jpg',
                 'bio' => ['ar' => 'مدربة في التربية', 'en' => 'Education trainer'],
                 'order' => 2,
                 'is_active' => true,
