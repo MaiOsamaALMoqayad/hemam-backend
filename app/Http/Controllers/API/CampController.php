@@ -10,6 +10,21 @@ use Illuminate\Support\Facades\Cache;
 
 class CampController extends Controller
 {
+
+    /**
+     * عرض جميع المخيمات (مفتوحة ومغلقة)
+     */
+    public function index()
+    {
+        $camps = Cache::remember('camps:all', 3600, function () {
+            return Camp::ordered()
+                ->with('locations')
+                ->get();
+        });
+
+        return CampResource::collection($camps);
+    }
+
     /**
      * عرض المخيمات المفتوحة
      */
