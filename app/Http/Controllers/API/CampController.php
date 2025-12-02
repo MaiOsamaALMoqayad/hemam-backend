@@ -11,18 +11,22 @@ use Illuminate\Support\Facades\Cache;
 class CampController extends Controller
 {
 
-    /**
-     * عرض جميع المخيمات (مفتوحة ومغلقة)
-     */
     public function index()
     {
-        $camps = Cache::remember('camps:all', 3600, function () {
-            return Camp::ordered()
-                ->with('locations')
-                ->get();
+        $camps = Cache::remember('camps:all_separated', 3600, function () {
+            $openCamps = Camp::open()->ordered()->with('locations')->get();
+            $closedCamps = Camp::closed()->ordered()->with('locations')->get();
+
+            return [
+                'open' => $openCamps,
+                'closed' => $closedCamps,
+            ];
         });
 
-        return CampResource::collection($camps);
+        return response()->json([
+            'open' => CampResource::collection($camps['open']),
+            'closed' => CampResource::collection($camps['closed']),
+        ]);
     }
 
     /**

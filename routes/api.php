@@ -33,6 +33,7 @@ Route::prefix('v1')->group(function () {
     // Camps
     // ---------------------------
     Route::get('/camps', [CampController::class, 'index']); // جميع المخيمات
+
     Route::get('/camps/open', [CampController::class, 'open']);
     Route::get('/camps/closed', [CampController::class, 'closed']);
     Route::get('/camps/{camp}', [CampController::class, 'show']);

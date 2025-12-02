@@ -45,9 +45,14 @@ class AppServiceProvider extends ServiceProvider
         });
 
         // Rate Limiting للـ Consultation Form (3 requests في الساعة)
-        RateLimiter::for('consultation', function (Request $request) {
-            return Limit::perHour(3)->by($request->ip());
-        });
+       RateLimiter::for('consultation', function (Request $request) {
+    $key = $request->ip(); // IP
+    if ($request->has('whatsapp')) {
+        $key .= ':' . $request->whatsapp; // نضيف رقم الجوال لتحديد المستخدم
+    }
+    return Limit::perHour(3)->by($key);
+});
+
 
         // Rate Limiting للـ Admin APIs
         RateLimiter::for('admin', function (Request $request) {
