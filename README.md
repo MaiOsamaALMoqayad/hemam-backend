@@ -1,66 +1,213 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Hemam Backend API
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+API Backend لموقع همم للتطوير والتدريب، مبني بـ Laravel 12 مع Clean Architecture.
 
-## About Laravel
+## 🚀 Features
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+- ✅ RESTful APIs للمحتوى (برامج، مشاريع، مخيمات، مدربون)
+- ✅ Form APIs مع Email Notifications
+- ✅ Admin APIs كاملة مع Authentication
+- ✅ Image Upload & Processing
+- ✅ Caching (Redis-ready)
+- ✅ Rate Limiting
+- ✅ Multi-language (AR/EN)
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## 📋 Requirements
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+- PHP 8.2+
+- MySQL 8.0+
+- Composer
+- Laravel 12
 
-## Learning Laravel
+## ⚙️ Installation
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+```bash
+# 1. Clone the repository
+git clone https://github.com/MaiOsamaALMoqayad/hemam-backend.git
+cd hemam-backend
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+# 2. Install dependencies
+composer install
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+# 3. Copy environment file
+cp .env.example .env
 
-## Laravel Sponsors
+# 4. Generate app key
+php artisan key:generate
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+# 5. Configure database in .env
+DB_DATABASE=hemam
+DB_USERNAME=root
+DB_PASSWORD=
 
-### Premium Partners
+# 6. Run migrations
+php artisan migrate
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
+# 7. Seed database (optional)
+php artisan db:seed
 
-## Contributing
+# 8. Create storage link
+php artisan storage:link
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+# 9. Start server
+php artisan serve
+```
 
-## Code of Conduct
+## 📧 Email Configuration
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+### Development (Mailtrap)
+```env
+MAIL_MAILER=smtp
+MAIL_HOST=sandbox.smtp.mailtrap.io
+MAIL_PORT=2525
+MAIL_USERNAME=your_username
+MAIL_PASSWORD=your_password
+```
 
-## Security Vulnerabilities
+### Production (Gmail)
+```env
+MAIL_MAILER=smtp
+MAIL_HOST=smtp.gmail.com
+MAIL_PORT=587
+MAIL_USERNAME=your-email@gmail.com
+MAIL_PASSWORD=your-app-password
+ADMIN_EMAIL=admin@hemam.com
+```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+## 📚 API Documentation
 
-## License
+### Public APIs
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+#### Content APIs
+- `GET /api/v1/annual-programs` - جميع البرامج السنوية
+- `GET /api/v1/projects` - جميع المشاريع
+- `GET /api/v1/camps/open` - المخيمات المفتوحة
+- `GET /api/v1/camps/closed` - المخيمات المغلقة
+- `GET /api/v1/camps/{id}` - تفاصيل مخيم
+- `GET /api/v1/trainers` - جميع المدربين
+- `GET /api/v1/statistics` - الإحصائيات
+- `GET /api/v1/settings` - إعدادات الموقع
+- `GET /api/v1/search?q=query` - البحث العام
+
+#### Form APIs
+- `POST /api/v1/contact` - فورم التواصل
+- `POST /api/v1/trainer-applications` - فورم الانضمام كمدرب
+- `POST /api/v1/consultations` - فورم استشارة خبير
+
+### Admin APIs
+
+#### Authentication
+- `POST /api/admin/login` - تسجيل الدخول
+- `POST /api/admin/logout` - تسجيل الخروج
+- `GET /api/admin/user` - معلومات المستخدم
+
+#### Resources (Protected)
+All require `Authorization: Bearer {token}`
+
+- **Dashboard:** `GET /api/admin/dashboard`
+- **Annual Programs:** CRUD endpoints
+- **Projects:** CRUD endpoints
+- **Camps:** CRUD endpoints
+- **Trainers:** CRUD endpoints
+- **Contacts:** Management endpoints
+- **Applications:** Management endpoints
+- **Consultations:** Management endpoints
+- **Statistics:** GET, PUT endpoints
+- **Settings:** GET, PUT endpoints
+
+## 🔐 Admin Credentials
+
+Default admin users (from seeder):
+```
+Email: admin@hemam.com
+Password: password123
+
+Email: mai@hemam.com
+Password: password123
+```
+
+## 🗂️ Project Structure
+
+```
+app/
+├── Domain/              # Business Logic Layer
+│   ├── AnnualPrograms/
+│   ├── Projects/
+│   ├── Camps/
+│   └── ...
+├── Http/
+│   ├── Controllers/
+│   │   ├── API/        # Public APIs
+│   │   └── Admin/      # Admin APIs
+│   ├── Requests/       # Form Validation
+│   └── Resources/      # API Resources
+├── Models/             # Eloquent Models
+├── Notifications/      # Email Notifications
+└── Helpers/            # Helper Classes
+
+database/
+├── migrations/         # Database Schema
+└── seeders/           # Test Data
+
+routes/
+└── api.php            # API Routes
+```
+
+## 🧪 Testing
+
+```bash
+# Run tests
+php artisan test
+
+# Test specific feature
+php artisan test --filter=ContactTest
+```
+
+## 🚀 Deployment
+
+### Production Setup
+
+```bash
+# 1. Optimize for production
+php artisan config:cache
+php artisan route:cache
+php artisan view:cache
+php artisan optimize
+
+# 2. Set production environment
+APP_ENV=production
+APP_DEBUG=false
+
+# 3. Setup queue worker
+php artisan queue:work --daemon
+
+# 4. Setup cron job for scheduled tasks
+* * * * * cd /path-to-project && php artisan schedule:run >> /dev/null 2>&1
+```
+
+## 📊 Performance
+
+- **Caching:** Redis recommended for production
+- **Queue:** Use Redis/Database for emails
+- **Images:** Automatically optimized with Intervention Image
+
+## 🛡️ Security
+
+- Rate Limiting on all public endpoints
+- Sanctum Authentication for Admin APIs
+- CORS configured for frontend
+- Input validation on all forms
+- XSS protection with strip_tags
+
+## 👥 Team
+
+- **Backend Developer:** Mai Osama AL Moqayad
+- **Frontend Developer:** Osama Alghoul
+
+## 📄 License
+
+Private Project - All Rights Reserved
+
+## 🤝 Contributing
+
+This is a private project. For any issues, contact the development team.
