@@ -61,3 +61,44 @@ Route::prefix('v1')->group(function () {
     Route::post('/trainer-applications', [TrainerApplicationController::class, 'store']);
     Route::post('/consultations', [ConsultationController::class, 'store']);
 });
+
+
+
+// Admin APIs
+Route::prefix('admin')->group(function () {
+    Route::post('/login', [\App\Http\Controllers\Admin\AuthController::class, 'login']);
+
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::post('/logout', [\App\Http\Controllers\Admin\AuthController::class, 'logout']);
+        Route::get('/user', [\App\Http\Controllers\Admin\AuthController::class, 'user']);
+        Route::get('/dashboard', [\App\Http\Controllers\Admin\DashboardController::class, 'index']);
+
+        Route::apiResource('annual-programs', \App\Http\Controllers\Admin\AnnualProgramController::class);
+        Route::apiResource('projects', \App\Http\Controllers\Admin\ProjectController::class);
+        Route::apiResource('camps', \App\Http\Controllers\Admin\CampController::class);
+        Route::apiResource('trainers', \App\Http\Controllers\Admin\TrainerController::class);
+
+        Route::get('contacts', [\App\Http\Controllers\Admin\ContactMessageController::class, 'index']);
+        Route::get('contacts/{contact}', [\App\Http\Controllers\Admin\ContactMessageController::class, 'show']);
+        Route::put('contacts/{contact}/mark-read', [\App\Http\Controllers\Admin\ContactMessageController::class, 'markAsRead']);
+        Route::delete('contacts/{contact}', [\App\Http\Controllers\Admin\ContactMessageController::class, 'destroy']);
+
+        Route::get('trainer-applications', [\App\Http\Controllers\Admin\TrainerApplicationController::class, 'index']);
+        Route::get('trainer-applications/{trainerApplication}', [\App\Http\Controllers\Admin\TrainerApplicationController::class, 'show']);
+        Route::put('trainer-applications/{trainerApplication}/status', [\App\Http\Controllers\Admin\TrainerApplicationController::class, 'updateStatus']);
+        Route::delete('trainer-applications/{trainerApplication}', [\App\Http\Controllers\Admin\TrainerApplicationController::class, 'destroy']);
+
+        Route::get('consultations', [\App\Http\Controllers\Admin\ConsultationController::class, 'index']);
+        Route::get('consultations/{consultation}', [\App\Http\Controllers\Admin\ConsultationController::class, 'show']);
+        Route::put('consultations/{consultation}/status', [\App\Http\Controllers\Admin\ConsultationController::class, 'updateStatus']);
+        Route::delete('consultations/{consultation}', [\App\Http\Controllers\Admin\ConsultationController::class, 'destroy']);
+
+        Route::get('statistics', [\App\Http\Controllers\Admin\StatisticsController::class, 'index']);
+        Route::put('statistics', [\App\Http\Controllers\Admin\StatisticsController::class, 'update']);
+
+        Route::get('settings', [\App\Http\Controllers\Admin\SettingController::class, 'index']);
+        Route::put('settings', [\App\Http\Controllers\Admin\SettingController::class, 'update']);
+
+
+    });
+});

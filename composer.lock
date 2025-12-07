@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "ac73eb34a112ab8174ab6a9e134cf738",
+    "content-hash": "fc7c528805fbc5149dcb59fbc60fecbd",
     "packages": [
         {
             "name": "brick/math",
@@ -507,6 +507,44 @@
                 }
             ],
             "time": "2025-03-06T22:45:56+00:00"
+        },
+        {
+            "name": "filament/filament",
+            "version": "v2.0.0-beta12",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/filamentphp/panels.git",
+                "reference": "1e36ef99ce5a997d7409f9860d940b07b5dc7355"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/filamentphp/panels/zipball/1e36ef99ce5a997d7409f9860d940b07b5dc7355",
+                "reference": "1e36ef99ce5a997d7409f9860d940b07b5dc7355",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^8.0"
+            },
+            "require-dev": {
+                "laravel/ui": "^3.3",
+                "livewire/livewire": "^2.5",
+                "orchestra/testbench": "^6.0",
+                "pestphp/pest": "^1.17",
+                "pestphp/pest-plugin-parallel": "^0.3.0",
+                "phpstan/phpstan": "^0.12.96",
+                "spatie/laravel-package-tools": "^1.9",
+                "symplify/monorepo-builder": "^9.0"
+            },
+            "type": "library",
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "description": "The elegant TALL stack admin panel for Laravel artisans.",
+            "support": {
+                "source": "https://github.com/filamentphp/panels/tree/v2.0.0-beta12"
+            },
+            "time": "2021-09-06T10:38:43+00:00"
         },
         {
             "name": "fruitcake/php-cors",
@@ -8659,7 +8697,9 @@
     ],
     "aliases": [],
     "minimum-stability": "dev",
-    "stability-flags": {},
+    "stability-flags": {
+        "filament/filament": 10
+    },
     "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {
