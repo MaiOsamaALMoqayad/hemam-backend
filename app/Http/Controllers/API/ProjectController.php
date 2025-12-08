@@ -9,15 +9,30 @@ use App\Http\Resources\ProjectResource;
 
 class ProjectController extends Controller
 {
-  public function index()
-{
-    $projects = Cache::remember('projects:all', 3600, function () {
-        return Project::active()
-            ->ordered()
-            ->with('images')
-            ->get();
-    });
+public function index()
+    {
+        $limit = request()->query('limit');
 
-    return ProjectResource::collection($projects);
+        // مفتاح الكاش حسب وجود limit
+        $cacheKey = $limit
+            ? "projects:limit:$limit"
+            : "projects:all";
+
+        // تشغيل الكاش
+        $projects = Cache::remember($cacheKey, 3600, function () use ($limit) {
+            $query = Project::active()
+                ->ordered()
+                ->with('images');
+
+            // لو موجود limit نطبقه
+            if ($limit) {
+                $query->limit($limit);
+            }
+
+            return $query->get();
+        });
+
+        return ProjectResource::collection($projects);
+    }
 }
-}
+
