@@ -1,147 +1,239 @@
 <?php
-
 namespace App\Http\Controllers\Admin;
 
-use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
-use App\Models\AnnualProgram;
-use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
+use App\Http\Controllers\Controller;
+use App\Models\AnnualProgram;
+use App\Http\Resources\AnnualProgramResource;
 use Intervention\Image\Laravel\Facades\Image;
+   use App\Http\Resources\AnnualProgramSummaryResource;
 
 class AnnualProgramController extends Controller
 {
-    public function index()
-    {
-        $programs = AnnualProgram::orderBy('order')->get()->map(function ($program) {
-            $program->image = $program->image ? asset('storage/' . $program->image) : null;
-            return $program;
+    // عرض جميع البرامج (مختصر)
+
+public function index()
+{
+    try {
+        $programs = Cache::remember('annual_programs:all', 3600, function () {
+            return AnnualProgram::orderBy('order', 'asc')->get();
         });
 
-        return response()->json($programs);
+        return AnnualProgramSummaryResource::collection($programs);
+
+    } catch (\Throwable $e) {
+        Log::error('Annual Programs API Error (index): ' . $e->getMessage());
+
+        return response()->json([
+            'status' => false,
+            'message' => 'حدث خطأ أثناء جلب البرامج',
+        ], 500);
     }
+}
 
-    public function store(Request $request)
+    // عرض برنامج واحد (كامل التفاصيل)
+    public function show($id)
     {
-        $data = $request->validate([
-            'title_ar' => 'required|string|max:255',
-            'title_en' => 'nullable|string|max:255',
-            'description_ar' => 'required|string',
-            'description_en' => 'nullable|string',
-            'image' => 'required|image|max:2048',
-            'order' => 'nullable|integer',
-            'is_active' => 'nullable|boolean',
-        ]);
+        try {
+            $program = Cache::remember("annual_programs:{$id}", 3600, function () use ($id) {
+                return AnnualProgram::findOrFail($id);
+            });
 
-        if ($request->hasFile('image')) {
-            $image = Image::read($request->file('image'));
-            $image->cover(800, 600);
-            $filename = uniqid() . '.jpg';
-            $image->save(storage_path('app/public/annual_programs/' . $filename), quality: 85);
-            $imagePath = 'annual_programs/' . $filename;
+            return new AnnualProgramResource($program);
+
+        } catch (\Throwable $e) {
+            Log::error("Annual Program API Error (show): " . $e->getMessage());
+
+            return response()->json([
+                'status' => false,
+                'message' => 'البرنامج المطلوب غير موجود',
+            ], 404);
         }
-
-        $program = AnnualProgram::create([
-            'title' => ['ar' => $data['title_ar'], 'en' => $data['title_en'] ?? ''],
-            'description' => ['ar' => $data['description_ar'], 'en' => $data['description_en'] ?? ''],
-            'image' => $imagePath,
-            'order' => $data['order'] ?? 0,
-            'is_active' => $data['is_active'] ?? true,
-        ]);
-
-        Cache::forget('annual_programs:all');
-
-        $program->image = $program->image ? asset('storage/' . $program->image) : null;
-
-        return response()->json($program, 201);
     }
 
-    public function show(AnnualProgram $annualProgram)
-    {
-        $annualProgram->image = $annualProgram->image ? asset('storage/' . $annualProgram->image) : null;
-        return response()->json($annualProgram);
-    }
-
-  public function update(Request $request, AnnualProgram $annualProgram)
+public function store(Request $request)
 {
-    // Validate incoming request
     $data = $request->validate([
         'title_ar' => 'required|string|max:255',
         'title_en' => 'nullable|string|max:255',
         'description_ar' => 'required|string',
         'description_en' => 'nullable|string',
-        'image' => 'nullable|image|max:2048',
+        'image' => 'required|image|max:2048',
         'order' => 'nullable|integer',
-        'is_active' => 'nullable|boolean',
+        'is_open' => 'nullable|boolean',
+        'application_deadline' => 'nullable|string',
+        'duration' => 'nullable|string',
+        'capacity' => 'nullable|string',
+        'history' => 'nullable|string',
+    ]);
+$data['history'] = isset($data['history']) ? json_decode($data['history'], true) : [];
+
+    // معالجة الصورة
+    $imagePath = null;
+    if ($request->hasFile('image')) {
+        $image = Image::read($request->file('image'));
+        $image->cover(800, 600);
+
+        $filename = uniqid() . '.jpg';
+        $image->save(storage_path('app/public/annual_programs/' . $filename), 85);
+
+        $imagePath = 'annual_programs/' . $filename;
+    }
+
+    $program = AnnualProgram::create([
+        'title' => [
+            'ar' => $data['title_ar'],
+            'en' => $data['title_en'] ?? '',
+        ],
+        'description' => [
+            'ar' => $data['description_ar'],
+            'en' => $data['description_en'] ?? '',
+        ],
+        'image' => $imagePath,
+        'order' => $data['order'] ?? 0,
+        'is_open' => $data['is_open'] ?? true,
+        'application_deadline' => $data['application_deadline'] ?? '',
+        'duration' => $data['duration'] ?? '',
+        'capacity' => $data['capacity'] ?? '',
     ]);
 
-    $imagePath = $annualProgram->image; // Default to existing image
-
-    if ($request->hasFile('image')) {
-        try {
-            // Log the uploaded file info
-            Log::info('Updating AnnualProgram image', [
-                'file_name' => $request->file('image')->getClientOriginalName(),
-                'real_path' => $request->file('image')->getRealPath(),
-                'program_id' => $annualProgram->id,
+    // إضافة الـ History
+    if (isset($data['history'])) {
+        foreach ($data['history'] as $h) {
+            $program->histories()->create([
+                   'annual_program_id' => $program->id,
+                'year' => $h['year'] ?? null,
+                'image' => $h['image'] ?? null,
+                'achievements' => $h['achievements'] ?? [],
             ]);
-
-            // Delete old image if exists
-            if ($annualProgram->image && Storage::disk('public')->exists($annualProgram->image)) {
-                Storage::disk('public')->delete($annualProgram->image);
-                Log::info('Deleted old image', ['old_image' => $annualProgram->image]);
-            }
-
-            // Process new image
-            $image = Image::read($request->file('image'));
-            $image->cover(800, 600);
-            $filename = uniqid() . '.jpg';
-            $savePath = storage_path('app/public/annual_programs/' . $filename);
-            $image->save($savePath, 85);
-
-            $imagePath = 'annual_programs/' . $filename;
-            Log::info('Saved new image', ['new_image' => $imagePath]);
-        } catch (\Exception $e) {
-            Log::error('Failed to update image', ['error' => $e->getMessage()]);
-            return response()->json([
-                'message' => 'حدث خطأ أثناء رفع الصورة',
-                'error' => $e->getMessage()
-            ], 500);
         }
     }
 
-    // Update program data
-    $annualProgram->update([
-        'title' => ['ar' => $data['title_ar'], 'en' => $data['title_en'] ?? ''],
-        'description' => ['ar' => $data['description_ar'], 'en' => $data['description_en'] ?? ''],
-        'image' => $imagePath,
-        'order' => $data['order'] ?? $annualProgram->order,
-        'is_active' => $data['is_active'] ?? $annualProgram->is_active,
-    ]);
-
-    // Clear cache
-    Cache::forget('annual_programs:all');
-
-    // Convert image path to full URL
-    $annualProgram->image = $annualProgram->image ? asset('storage/' . $annualProgram->image) : null;
-
-    Log::info('AnnualProgram updated successfully', [
-        'program_id' => $annualProgram->id,
-        'image_url' => $annualProgram->image,
-    ]);
-
-    return response()->json($annualProgram);
+    return new AnnualProgramResource($program);
 }
 
 
+
+public function update(Request $request, AnnualProgram $annualProgram)
+{
+    try {
+        // Validation
+        $data = $request->validate([
+            'title_ar' => 'sometimes|string|max:255',
+            'title_en' => 'sometimes|nullable|string|max:255',
+            'description_ar' => 'sometimes|string',
+            'description_en' => 'sometimes|nullable|string',
+            'image' => 'sometimes|nullable|image|max:2048',
+            'order' => 'sometimes|integer',
+            'is_open' => 'sometimes|boolean',
+            'application_deadline' => 'sometimes|string',
+            'duration' => 'sometimes|string',
+            'capacity' => 'sometimes|string',
+            'history' => 'sometimes|string', // JSON string
+        ]);
+
+        // --- تحديث العنوان ---
+        $title = $annualProgram->title;
+        if ($request->has('title_ar')) {
+            $title['ar'] = $data['title_ar'];
+        }
+        if ($request->has('title_en')) {
+            $title['en'] = $data['title_en'] ?? '';
+        }
+
+        // --- تحديث الوصف ---
+        $description = $annualProgram->description;
+        if ($request->has('description_ar')) {
+            $description['ar'] = $data['description_ar'];
+        }
+        if ($request->has('description_en')) {
+            $description['en'] = $data['description_en'] ?? '';
+        }
+
+        // --- تحديث الصورة ---
+        $imagePath = $annualProgram->image;
+        if ($request->hasFile('image')) {
+
+            // حذف الصورة القديمة
+            if ($imagePath) {
+                Storage::disk('public')->delete($imagePath);
+            }
+
+            $image = Image::read($request->file('image'));
+            $image->cover(800, 600);
+
+            $filename = uniqid() . '.jpg';
+            $image->save(storage_path('app/public/annual_programs/' . $filename), 85);
+
+            $imagePath = 'annual_programs/' . $filename;
+        }
+
+        // --- تحديث البرنامج الرئيسي ---
+        $annualProgram->update([
+            'title' => $title,
+            'description' => $description,
+            'image' => $imagePath,
+            'order' => $data['order'] ?? $annualProgram->order,
+            'is_open' => $data['is_open'] ?? $annualProgram->is_open,
+            'application_deadline' => $data['application_deadline'] ?? $annualProgram->application_deadline,
+            'duration' => $data['duration'] ?? $annualProgram->duration,
+            'capacity' => $data['capacity'] ?? $annualProgram->capacity,
+        ]);
+
+        // --- تحديث الـ HISTORY ---
+        if ($request->has('history')) {
+
+            $historyData = json_decode($data['history'], true);
+
+            // حذف القديم
+            $annualProgram->histories()->delete();
+
+            // إضافة الجديد
+            foreach ($historyData as $h) {
+                $annualProgram->histories()->create([
+                    'annual_program_id' => $annualProgram->id,
+                    'year' => $h['year'] ?? null,
+                    'image' => $h['image'] ?? null,
+                    'achievements' => $h['achievements'] ?? [],
+                ]);
+            }
+        }
+
+        // Clear Cache
+        Cache::forget('annual_programs:all');
+        Cache::forget("annual_programs:{$annualProgram->id}");
+
+        return new AnnualProgramResource($annualProgram);
+
+    } catch (\Throwable $e) {
+        Log::error("Annual Programs API Error (update): " . $e->getMessage());
+
+        return response()->json([
+            'status' => false,
+            'message' => 'حدث خطأ أثناء تحديث البرنامج',
+            'error' => $e->getMessage(),
+        ], 500);
+    }
+}
+
+
+
+
+
+
+    // حذف برنامج
     public function destroy(AnnualProgram $annualProgram)
     {
         if ($annualProgram->image) {
             Storage::disk('public')->delete($annualProgram->image);
         }
+
         $annualProgram->delete();
         Cache::forget('annual_programs:all');
-        return response()->json(['message' => 'تم الحذف بنجاح']);
+
+        return response()->json(['message' => 'تم حذف البرنامج بنجاح']);
     }
 }

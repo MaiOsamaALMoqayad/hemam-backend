@@ -7,44 +7,58 @@ use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Cache;
 use App\Http\Resources\AnnualProgramResource;
-
+  use App\Http\Resources\AnnualProgramSummaryResource;
 class AnnualProgramController extends Controller
 {
     /**
-     * Display a listing of annual programs.
-     *
      * GET /api/v1/annual-programs
-     *
-     * Response:
-     * [
-     *   {
-     *     "id": 1,
-     *     "title": "رواحل المجد",
-     *     "description": "رحلة روحانية...",
-     *     "image": "https://api.hemam.com/storage/annual_programs/almagd.jpg"
-     *   }
-     * ]
+     * عرض جميع البرامج السنوية
      */
-    public function index()
-    {   try {
-        // Cache للبيانات لمدة ساعة (3600 ثانية)
+
+
+public function index()
+{
+    try {
         $programs = Cache::remember('annual_programs:all', 3600, function () {
-            // جلب البرامج النشطة فقط، مرتبة
-            return AnnualProgram::active()
-                ->ordered()
-                ->get();
+            return AnnualProgram::orderBy('order', 'asc')->get();
         });
 
-        // تحويل البيانات باستخدام Resource
-        return AnnualProgramResource::collection($programs);
-  } catch (\Throwable $e) {
-    // Log the error for debugging
-    Log::error('Annual Programs API Error: ' . $e->getMessage());
+        return AnnualProgramSummaryResource::collection($programs);
 
-    return response()->json([
-        'status' => false,
-        'message' => 'حدث خطأ أثناء جلب البرامج',
-    ], 500);
-}
+    } catch (\Throwable $e) {
+        Log::error('Annual Programs API Error (index): ' . $e->getMessage());
+
+        return response()->json([
+            'status' => false,
+            'message' => 'حدث خطأ أثناء جلب البرامج',
+        ], 500);
     }
+}
+
+
+
+    /**
+     * GET /api/v1/annual-programs/{id}
+     * عرض برنامج سنوي واحد بالتاريخ والهستوري
+     */
+public function show($id)
+{
+    try {
+        $program = Cache::remember("annual_programs:{$id}", 3600, function () use ($id) {
+            return AnnualProgram::with('histories')->findOrFail($id);
+        });
+
+        return new AnnualProgramResource($program);
+
+    } catch (\Throwable $e) {
+        Log::error("Annual Program API Error (show): " . $e->getMessage());
+
+        return response()->json([
+            'status' => false,
+            'message' => 'البرنامج المطلوب غير موجود',
+        ], 404);
+    }
+}
+
+
 }

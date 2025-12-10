@@ -2,36 +2,32 @@
 
 namespace App\Http\Resources;
 
-use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class AnnualProgramResource extends JsonResource
 {
-    /**
-     * Transform the resource into an array.
-     */
-    public function toArray(Request $request): array
-    {
-        return [
-            'id' => $this->id,
-            'title' => $this->getTranslation('title'),
-            'description' => $this->getTranslation('description'),
-            'image' => $this->image ? asset('storage/' . $this->image) : null,
-        ];
-    }
+  public function toArray($request)
+{
+    // تأكد من أن title و description هما arrays
+    $title = is_array($this->title) ? $this->title : json_decode($this->title, true);
+    $description = is_array($this->description) ? $this->description : json_decode($this->description, true);
 
-    /**
-     * Get translated field
-     */
-    private function getTranslation(string $field): string
-    {
-        $locale = app()->getLocale();
-        $data = $this->{$field};
-
-        if (is_string($data)) {
-            $data = json_decode($data, true);
-        }
-
-        return $data[$locale] ?? $data['ar'] ?? '';
-    }
+    return [
+        'id' => $this->id,
+        'title' => $title['ar'] ?? '',
+        'description' => $description['ar'] ?? '',
+        'image' => $this->image ? asset('storage/' . $this->image) : null,
+        'isOpen' => $this->is_open,
+        'applicationDeadline' => $this->application_deadline,
+        'duration' => $this->duration,
+        'capacity' => $this->capacity,
+        'history' => $this->histories->map(function($h) {
+            return [
+                'year' => $h->year,
+                'image' => $h->image ? asset('storage/' . $h->image) : null,
+                'achievements' => $h->achievements ?? [],
+            ];
+        }),
+    ];
+}
 }

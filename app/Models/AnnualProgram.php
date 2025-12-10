@@ -11,14 +11,19 @@ class AnnualProgram extends Model
         'description',
         'image',
         'order',
-        'is_active',
+        'is_open',
+        'application_deadline',
+        'duration',
+        'capacity',
     ];
 
     protected $casts = [
         'title' => 'array',
         'description' => 'array',
-        'is_active' => 'boolean',
+        'is_open' => 'boolean',
     ];
+
+
 
     /**
      * Scope للبرامج النشطة فقط
@@ -54,4 +59,12 @@ class AnnualProgram extends Model
     {
         return $this->image ? asset('storage/' . $this->image) : null;
     }
+
+    // AnnualProgram.php
+public function histories()
+{
+    return $this->hasMany(AnnualProgramHistory::class, 'annual_program_id');
+}
+
+
 }
