@@ -68,7 +68,7 @@ Route::prefix('v1')->group(function () {
 Route::prefix('admin')->group(function () {
     Route::post('/login', [\App\Http\Controllers\Admin\AuthController::class, 'login']);
 
-    Route::middleware('auth:sanctum')->group(function () {
+    Route::middleware(['auth.cookie', 'auth:sanctum'])->group(function () {
         Route::post('/logout', [\App\Http\Controllers\Admin\AuthController::class, 'logout']);
         Route::get('/user', [\App\Http\Controllers\Admin\AuthController::class, 'user']);
         Route::get('/dashboard', [\App\Http\Controllers\Admin\DashboardController::class, 'index']);

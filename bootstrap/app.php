@@ -17,6 +17,11 @@ return Application::configure(basePath: dirname(__DIR__))
             \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
         ]);
 
+        // إضافة Cookie Auth Middleware
+        $middleware->alias([
+            'auth.cookie' => \App\Http\Middleware\AuthenticateFromCookie::class,
+        ]);
+
         // تفعيل Rate Limiting
         $middleware->throttleApi();
     })
