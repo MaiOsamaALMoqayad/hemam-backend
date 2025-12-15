@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers\API;
 
-use Illuminate\Support\Facades\Notification;
-use App\Models\ExpertConsultation;
-use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ConsultationRequest;
+use App\Models\ExpertConsultation;
+use App\Notifications\NewConsultationNotification;
+use Illuminate\Support\Facades\{Notification, Log, DB};
 
 class ConsultationController extends Controller
 {
@@ -27,11 +27,13 @@ class ConsultationController extends Controller
      * Response:
      * {
      *   "success": true,
-     *   "message": "تم تقديم طلب الاستشارة بنجاح. سيتواصل معك أحد خبرائنا قريباً"
+     *   "message": "تم تقديم طلب الاستشارة بنجاح"
      * }
      */
     public function store(ConsultationRequest $request)
     {
+        DB::beginTransaction();
+
         try {
             // حفظ طلب الاستشارة في قاعدة البيانات
             $consultation = ExpertConsultation::create([
@@ -43,29 +45,70 @@ class ConsultationController extends Controller
                 'status' => 'pending',
             ]);
 
-             try {
-                Notification::route('mail', env('ADMIN_EMAIL', 'admin@hemam.com'))
-                    ->notify(new \App\Notifications\NewConsultationNotification($consultation));
-            } catch (\Exception $e) {
-                Log::warning('Failed to send email notification: ' . $e->getMessage());
-            }
+            // Log النجاح
             Log::info('New consultation request received', [
                 'id' => $consultation->id,
                 'name' => $consultation->name,
                 'type' => $consultation->consultation_type,
+                'ip' => $request->ip(),
             ]);
+
+            // إرسال إشعار للأدمن عبر Email
+            try {
+                $adminEmail = config('mail.admin_email', env('ADMIN_EMAIL', 'admin@hemam.com'));
+
+                Notification::route('mail', $adminEmail)
+                    ->notify(new NewConsultationNotification($consultation));
+
+                Log::info('Consultation email sent successfully to: ' . $adminEmail, [
+                    'consultation_id' => $consultation->id
+                ]);
+
+            } catch (\Exception $emailError) {
+                // لو فشل الإيميل، نسجل الخطأ لكن ما نوقف العملية
+                Log::warning('Failed to send consultation email notification', [
+                    'consultation_id' => $consultation->id,
+                    'error' => $emailError->getMessage(),
+                    'line' => $emailError->getLine(),
+                ]);
+            }
+
+            DB::commit();
 
             return response()->json([
                 'success' => true,
                 'message' => 'تم تقديم طلب الاستشارة بنجاح. سيتواصل معك أحد خبرائنا قريباً',
+                'consultation_id' => $consultation->id,
             ], 201);
 
-        } catch (\Throwable $e) {
-            Log::error('Consultation Form Error: ' . $e->getMessage());
+        } catch (\Illuminate\Database\QueryException $dbError) {
+            DB::rollBack();
+
+            Log::error('Database error in Consultation Form', [
+                'error' => $dbError->getMessage(),
+                'code' => $dbError->getCode(),
+                'line' => $dbError->getLine(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'حدث خطأ في قاعدة البيانات. يرجى المحاولة مرة أخرى',
+            ], 500);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            Log::error('Consultation Form Error', [
+                'error' => $e->getMessage(),
+                'line' => $e->getLine(),
+                'file' => $e->getFile(),
+                'trace' => $e->getTraceAsString(),
+            ]);
 
             return response()->json([
                 'success' => false,
                 'message' => 'حدث خطأ أثناء تقديم طلب الاستشارة. يرجى المحاولة مرة أخرى',
+                'error' => app()->environment('local') ? $e->getMessage() : null,
             ], 500);
         }
     }

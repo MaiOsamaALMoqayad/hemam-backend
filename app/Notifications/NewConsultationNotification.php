@@ -36,7 +36,7 @@ class NewConsultationNotification extends Notification
             ->greeting('مرحباً!')
             ->line('لديك طلب استشارة خبير جديد من موقع همم.')
             ->line('**الاسم:** ' . $this->consultation->name)
-            ->line('**رقم الواتساب:** ' . $this->consultation->country_code . $this->consultation->whatsapp)
+            ->line('**رقم الواتساب:** ' . $this->consultation->whatsapp)
             ->line('**نوع الاستشارة:** ' . $this->getConsultationTypeLabel())
             ->line('**تفاصيل الاستشارة:**')
             ->line($this->consultation->consultation_details)
@@ -44,7 +44,7 @@ class NewConsultationNotification extends Notification
                 return $mail->line('**ملاحظات إضافية:**')
                     ->line($this->consultation->notes);
             })
-            ->action('مراجعة الطلب في لوحة التحكم', url('/admin'))
+            ->action('مراجعة الطلب في لوحة التحكم', url('/admin/consultations/' . $this->consultation->id))
             ->line('شكراً لاستخدامك نظام همم!');
     }
 
@@ -55,7 +55,7 @@ class NewConsultationNotification extends Notification
     {
         return match($this->consultation->consultation_type) {
             'educational' => 'تربوية',
-            'administrative' => 'إدارية',
+            'management' => 'إدارية',
             'leadership' => 'قيادية',
             'personal' => 'شخصية',
             default => $this->consultation->consultation_type,
