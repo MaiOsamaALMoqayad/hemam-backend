@@ -12,17 +12,10 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
-        // إضافة Sanctum Middleware للـ API
         $middleware->api(prepend: [
-            \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
+            \App\Http\Middleware\AuthenticateFromCookie::class,
         ]);
 
-        // إضافة Cookie Auth Middleware
-        $middleware->alias([
-            'auth.cookie' => \App\Http\Middleware\AuthenticateFromCookie::class,
-        ]);
-
-        // تفعيل Rate Limiting
         $middleware->throttleApi();
     })
     ->withExceptions(function (Exceptions $exceptions) {

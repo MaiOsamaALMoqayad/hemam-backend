@@ -64,13 +64,14 @@ Route::prefix('v1')->group(function () {
 
 
 
-// Admin APIs
 Route::prefix('admin')->group(function () {
     Route::post('/login', [\App\Http\Controllers\Admin\AuthController::class, 'login']);
 
-    Route::middleware(['auth.cookie', 'auth:sanctum'])->group(function () {
+    // بس auth:sanctum - الـ Cookie middleware شغال تلقائياً
+    Route::middleware(['auth:sanctum'])->group(function () {
         Route::post('/logout', [\App\Http\Controllers\Admin\AuthController::class, 'logout']);
         Route::get('/user', [\App\Http\Controllers\Admin\AuthController::class, 'user']);
+        Route::get('/check', [\App\Http\Controllers\Admin\AuthController::class, 'check']);
         Route::get('/dashboard', [\App\Http\Controllers\Admin\DashboardController::class, 'index']);
 
         Route::apiResource('annual-programs', \App\Http\Controllers\Admin\AnnualProgramController::class);
@@ -98,7 +99,5 @@ Route::prefix('admin')->group(function () {
 
         Route::get('settings', [\App\Http\Controllers\Admin\SettingController::class, 'index']);
         Route::put('settings', [\App\Http\Controllers\Admin\SettingController::class, 'update']);
-
-
     });
 });
