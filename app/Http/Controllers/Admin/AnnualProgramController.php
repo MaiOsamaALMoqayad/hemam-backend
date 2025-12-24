@@ -67,9 +67,9 @@ public function store(Request $request)
         'application_deadline' => 'nullable|string',
         'duration' => 'nullable|string',
         'capacity' => 'nullable|string',
-        'history' => 'nullable|string',
+'history' => 'nullable|array',
     ]);
-$data['history'] = isset($data['history']) ? json_decode($data['history'], true) : [];
+$data['history'] = $data['history'] ?? [];
 
     // معالجة الصورة
     $imagePath = null;
@@ -111,8 +111,11 @@ $data['history'] = isset($data['history']) ? json_decode($data['history'], true)
             ]);
         }
     }
+Cache::forget('annual_programs:all');
 
-    return new AnnualProgramResource($program);
+return response()->json([
+    'data' => new AnnualProgramResource($program)
+]);
 }
 
 
