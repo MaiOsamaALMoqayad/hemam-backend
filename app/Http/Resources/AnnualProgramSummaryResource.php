@@ -13,6 +13,7 @@ class AnnualProgramSummaryResource extends JsonResource
             'title' => $this->getTranslated('title'),
             'description' => $this->getTranslated('description'),
             'image' => $this->image ? asset('storage/' . $this->image) : null,
+            'is_open' => $this->is_open,
         ];
     }
 
