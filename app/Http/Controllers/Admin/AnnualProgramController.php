@@ -101,15 +101,8 @@ $data['history'] = $data['history'] ?? [];
     ]);
 
     // إضافة الـ History
-    if (isset($data['history'])) {
-        foreach ($data['history'] as $h) {
-            $program->histories()->create([
-                   'annual_program_id' => $program->id,
-                'year' => $h['year'] ?? null,
-                'image' => $h['image'] ?? null,
-                'achievements' => $h['achievements'] ?? [],
-            ]);
-        }
+    if ($request->has('history')) {
+        $this->processHistory($program, $request->input('history'), $request);
     }
 Cache::forget('annual_programs:all');
 
@@ -131,11 +124,11 @@ public function update(Request $request, AnnualProgram $annualProgram)
             'description_en' => 'sometimes|nullable|string',
             'image' => 'sometimes|nullable|image|max:2048',
             'order' => 'sometimes|integer',
-            'is_open' => 'sometimes|boolean',
+            'is_open' => 'sometimes',
             'application_deadline' => 'sometimes|string',
             'duration' => 'sometimes|string',
             'capacity' => 'sometimes|string',
-            'history' => 'sometimes|string', // JSON string
+            'history' => 'sometimes|array',
         ]);
 
         // --- تحديث العنوان ---
@@ -188,21 +181,10 @@ public function update(Request $request, AnnualProgram $annualProgram)
 
         // --- تحديث الـ HISTORY ---
         if ($request->has('history')) {
-
-            $historyData = json_decode($data['history'], true);
-
-            // حذف القديم
+            // حذف القديم (او يمكن عمل تحديث ذكي، لكن حالياً الحذف والاضافة اسهل)
             $annualProgram->histories()->delete();
 
-            // إضافة الجديد
-            foreach ($historyData as $h) {
-                $annualProgram->histories()->create([
-                    'annual_program_id' => $annualProgram->id,
-                    'year' => $h['year'] ?? null,
-                    'image' => $h['image'] ?? null,
-                    'achievements' => $h['achievements'] ?? [],
-                ]);
-            }
+            $this->processHistory($annualProgram, $request->input('history'), $request);
         }
 
         // Clear Cache
@@ -234,9 +216,44 @@ public function update(Request $request, AnnualProgram $annualProgram)
             Storage::disk('public')->delete($annualProgram->image);
         }
 
+        // حذف صور التاريخ ايضاً
+        foreach($annualProgram->histories as $h) {
+            if ($h->image) {
+                Storage::disk('public')->delete($h->image);
+            }
+        }
+
         $annualProgram->delete();
         Cache::forget('annual_programs:all');
 
         return response()->json(['message' => 'تم حذف البرنامج بنجاح']);
+    }
+
+    private function processHistory($program, $historyData, $request)
+    {
+        foreach ($historyData as $index => $h) {
+            $imagePath = $h['image_url'] ?? null;
+            
+            // إذا كان الرابط كاملاً، نستخرج المسار النسبي فقط
+            if ($imagePath && str_contains($imagePath, asset('storage/'))) {
+                $imagePath = str_replace(asset('storage/'), '', $imagePath);
+            }
+
+            // إذا تم رفع صورة جديدة لهذا السجل
+            if ($request->hasFile("history.{$index}.image")) {
+                $file = $request->file("history.{$index}.image");
+                $image = Image::read($file);
+                $image->cover(400, 300);
+                $filename = uniqid() . '_h.jpg';
+                $image->save(storage_path('app/public/annual_programs/' . $filename), 85);
+                $imagePath = 'annual_programs/' . $filename;
+            }
+
+            $program->histories()->create([
+                'year' => $h['year'] ?? null,
+                'image' => $imagePath,
+                'achievements' => $h['achievements'] ?? [],
+            ]);
+        }
     }
 }
