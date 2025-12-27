@@ -36,7 +36,7 @@ class SearchController extends Controller
             // =====================================================
             // 📌 1) Annual Programs
             // =====================================================
-            $annualPrograms = AnnualProgram::active()
+            $annualPrograms = AnnualProgram::where('is_open', true)
                 ->where(function ($q) use ($searchTerm, $locale, $sqlTitle, $sqlDesc) {
                     $q->whereRaw(sprintf($sqlTitle, $locale), ["%{$searchTerm}%"])
                       ->orWhereRaw(sprintf($sqlDesc, $locale), ["%{$searchTerm}%"])
