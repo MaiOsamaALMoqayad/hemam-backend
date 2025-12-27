@@ -21,6 +21,9 @@ class AuthenticateFromCookie
             $token = $request->cookie('admin_token');
 
             if ($token) {
+                // فك التشفير إذا كان مشفر (لحماية الـ "|" حرف)
+                $token = urldecode($token);
+                
                 // أضف التوكن للـ Authorization header
                 $request->headers->set('Authorization', 'Bearer ' . $token);
 

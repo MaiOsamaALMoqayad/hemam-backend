@@ -65,7 +65,7 @@ Route::prefix('v1')->group(function () {
 
 
 Route::prefix('admin')->group(function () {
-    Route::post('/login', [\App\Http\Controllers\Admin\AuthController::class, 'login']);
+    Route::post('/login', [\App\Http\Controllers\Admin\AuthController::class, 'login'])->name('login');
 
     // بس auth:sanctum - الـ Cookie middleware شغال تلقائياً
     Route::middleware(['auth:sanctum'])->group(function () {
