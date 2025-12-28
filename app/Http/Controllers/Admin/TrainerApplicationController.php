@@ -8,6 +8,35 @@ use Illuminate\Http\Request;
 
 class TrainerApplicationController extends Controller
 {
+   
+    private function qualificationMap()
+    {
+        return [
+            'high_school' => 'ثانوية عامة',
+            'bachelor'    => 'بكالوريوس',
+            'master'      => 'ماجستير',
+            'other'       => 'أخرى',
+        ];
+    }
+
+
+    private function trainingFieldsMap()
+    {
+        return [
+            'leadership'            => 'القيادة',
+            'management'            => 'الإدارة',
+            'education'             => 'التعليم',
+            'guidance'              => 'الإرشاد',
+            'odt_activities'        => 'أنشطة ODT',
+            'psychological_support' => 'الدعم النفسي',
+            'sharia_sciences'       => 'العلوم الشرعية',
+            'other'                 => 'أخرى',
+        ];
+    }
+
+    /**
+     * عرض جميع طلبات التدريب
+     */
     public function index(Request $request)
     {
         $query = TrainerApplication::query();
@@ -16,14 +45,55 @@ class TrainerApplicationController extends Controller
             $query->where('status', $request->status);
         }
 
-        return response()->json($query->latest()->get());
+        $applications = $query->latest()->get();
+
+        $applications->transform(function ($app) {
+
+            // ترجمة الشهادة العلمية
+            $app->qualification =
+                $this->qualificationMap()[$app->qualification]
+                ?? $app->qualification;
+
+            // ترجمة مجالات التدريب
+            $app->training_fields = collect($app->training_fields)->map(function ($field) use ($app) {
+                if ($field === 'other') {
+                    return $app->training_field_other; // نص المجال الآخر إذا موجود
+                }
+
+                return $this->trainingFieldsMap()[$field] ?? $field;
+            })->values();
+
+            return $app;
+        });
+
+        return response()->json($applications);
     }
 
+    /**
+     * عرض طلب تدريب واحد
+     */
     public function show(TrainerApplication $trainerApplication)
     {
+        // ترجمة الشهادة العلمية
+        $trainerApplication->qualification =
+            $this->qualificationMap()[$trainerApplication->qualification]
+            ?? $trainerApplication->qualification;
+
+        // ترجمة مجالات التدريب
+        $trainerApplication->training_fields = collect($trainerApplication->training_fields)->map(function ($field) use ($trainerApplication) {
+            if ($field === 'other') {
+                return $trainerApplication->training_field_other; // نص المجال الآخر إذا موجود
+            }
+
+            return $this->trainingFieldsMap()[$field] ?? $field;
+        })->values();
+
         return response()->json($trainerApplication);
     }
 
+    /**
+     * تحديث حالة الطلب
+     */
     public function updateStatus(Request $request, TrainerApplication $trainerApplication)
     {
         $data = $request->validate([
@@ -32,9 +102,16 @@ class TrainerApplicationController extends Controller
         ]);
 
         $trainerApplication->update($data);
-        return response()->json(['message' => 'تم التحديث', 'application' => $trainerApplication]);
+
+        return response()->json([
+            'message' => 'تم التحديث',
+            'application' => $trainerApplication
+        ]);
     }
 
+    /**
+     * حذف طلب تدريب
+     */
     public function destroy(TrainerApplication $trainerApplication)
     {
         $trainerApplication->delete();

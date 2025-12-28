@@ -8,6 +8,16 @@ use Illuminate\Http\Request;
 
 class ConsultationController extends Controller
 {
+    private function consultationTypeAr($type)
+    {
+        return [
+            'educational' => 'تعليمية',
+            'management'  => 'إدارية',
+            'leadership'  => 'قيادية',
+            'personal'    => 'شخصية',
+        ][$type] ?? $type;
+    }
+
     public function index(Request $request)
     {
         $query = ExpertConsultation::query();
@@ -16,11 +26,20 @@ class ConsultationController extends Controller
             $query->where('status', $request->status);
         }
 
-        return response()->json($query->latest()->get());
+        $consultations = $query->latest()->get()->map(function ($consultation) {
+            $consultation->consultation_type =
+                $this->consultationTypeAr($consultation->consultation_type);
+            return $consultation;
+        });
+
+        return response()->json($consultations);
     }
 
     public function show(ExpertConsultation $consultation)
     {
+        $consultation->consultation_type =
+            $this->consultationTypeAr($consultation->consultation_type);
+
         return response()->json($consultation);
     }
 
@@ -32,12 +51,21 @@ class ConsultationController extends Controller
         ]);
 
         $consultation->update($data);
-        return response()->json(['message' => 'تم التحديث', 'consultation' => $consultation]);
+
+        // تحويل النوع للعربي قبل الإرجاع
+        $consultation->consultation_type =
+            $this->consultationTypeAr($consultation->consultation_type);
+
+        return response()->json([
+            'message' => 'تم التحديث',
+            'consultation' => $consultation
+        ]);
     }
 
     public function destroy(ExpertConsultation $consultation)
     {
         $consultation->delete();
+
         return response()->json(['message' => 'تم الحذف بنجاح']);
     }
 }
