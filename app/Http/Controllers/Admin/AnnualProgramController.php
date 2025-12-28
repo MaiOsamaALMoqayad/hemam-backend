@@ -112,11 +112,9 @@ return response()->json([
 }
 
 
-
 public function update(Request $request, AnnualProgram $annualProgram)
 {
     try {
-        // Validation
         $data = $request->validate([
             'title_ar' => 'sometimes|string|max:255',
             'title_en' => 'sometimes|nullable|string|max:255',
@@ -131,76 +129,71 @@ public function update(Request $request, AnnualProgram $annualProgram)
             'history' => 'sometimes|array',
         ]);
 
-        // --- تحديث العنوان ---
-        $title = $annualProgram->title;
-        if ($request->has('title_ar')) {
-            $title['ar'] = $data['title_ar'];
-        }
-        if ($request->has('title_en')) {
-            $title['en'] = $data['title_en'] ?? '';
-        }
+        // تحديث العنوان والوصف
+    // --- تحديث العنوان ---
+$title = $annualProgram->title;
 
-        // --- تحديث الوصف ---
-        $description = $annualProgram->description;
-        if ($request->has('description_ar')) {
-            $description['ar'] = $data['description_ar'];
-        }
-        if ($request->has('description_en')) {
-            $description['en'] = $data['description_en'] ?? '';
-        }
+// تأكد أن $title مصفوفة، إذا كان نصاً قم بتحويله
+if (is_string($title)) {
+    $title = json_decode($title, true) ?? [];
+}
 
-        // --- تحديث الصورة ---
+if ($request->has('title_ar')) {
+    $title['ar'] = $data['title_ar'];
+}
+if ($request->has('title_en')) {
+    $title['en'] = $data['title_en'] ?? '';
+}
+
+// --- تحديث الوصف ---
+$description = $annualProgram->description;
+
+// تأكد أن $description مصفوفة
+if (is_string($description)) {
+    $description = json_decode($description, true) ?? [];
+}
+
+if ($request->has('description_ar')) {
+    $description['ar'] = $data['description_ar'];
+}
+if ($request->has('description_en')) {
+    $description['en'] = $data['description_en'] ?? '';
+}
+
+        // تحديث الصورة الرئيسية
         $imagePath = $annualProgram->image;
         if ($request->hasFile('image')) {
-
-            // حذف الصورة القديمة
-            if ($imagePath) {
-                Storage::disk('public')->delete($imagePath);
-            }
-
-            $image = Image::read($request->file('image'));
-            $image->cover(800, 600);
-
+            if ($imagePath) Storage::disk('public')->delete($imagePath);
+            $image = Image::read($request->file('image'))->cover(800, 600);
             $filename = uniqid() . '.jpg';
             $image->save(storage_path('app/public/annual_programs/' . $filename), 85);
-
             $imagePath = 'annual_programs/' . $filename;
         }
 
-        // --- تحديث البرنامج الرئيسي ---
         $annualProgram->update([
             'title' => $title,
             'description' => $description,
             'image' => $imagePath,
             'order' => $data['order'] ?? $annualProgram->order,
-            'is_open' => $data['is_open'] ?? $annualProgram->is_open,
+            'is_open' => $request->has('is_open') ? filter_var($data['is_open'], FILTER_VALIDATE_BOOLEAN) : $annualProgram->is_open,
             'application_deadline' => $data['application_deadline'] ?? $annualProgram->application_deadline,
             'duration' => $data['duration'] ?? $annualProgram->duration,
             'capacity' => $data['capacity'] ?? $annualProgram->capacity,
         ]);
 
-        // --- تحديث الـ HISTORY ---
+        // تحديث الـ History بشكل ذكي
         if ($request->has('history')) {
-            // حذف القديم (او يمكن عمل تحديث ذكي، لكن حالياً الحذف والاضافة اسهل)
-            $annualProgram->histories()->delete();
-
             $this->processHistory($annualProgram, $request->input('history'), $request);
         }
 
-        // Clear Cache
         Cache::forget('annual_programs:all');
         Cache::forget("annual_programs:{$annualProgram->id}");
 
         return new AnnualProgramResource($annualProgram);
 
     } catch (\Throwable $e) {
-        Log::error("Annual Programs API Error (update): " . $e->getMessage());
-
-        return response()->json([
-            'status' => false,
-            'message' => 'حدث خطأ أثناء تحديث البرنامج',
-            'error' => $e->getMessage(),
-        ], 500);
+        Log::error("Annual Programs Update Error: " . $e->getMessage());
+        return response()->json(['status' => false, 'message' => 'حدث خطأ أثناء التحديث', 'error' => $e->getMessage()], 500);
     }
 }
 
@@ -229,31 +222,49 @@ public function update(Request $request, AnnualProgram $annualProgram)
         return response()->json(['message' => 'تم حذف البرنامج بنجاح']);
     }
 
-    private function processHistory($program, $historyData, $request)
-    {
-        foreach ($historyData as $index => $h) {
-            $imagePath = $h['image_url'] ?? null;
-            
-            // إذا كان الرابط كاملاً، نستخرج المسار النسبي فقط
-            if ($imagePath && str_contains($imagePath, asset('storage/'))) {
-                $imagePath = str_replace(asset('storage/'), '', $imagePath);
-            }
+private function processHistory($program, $historyData, $request)
+{
+    foreach ($historyData as $index => $h) {
+        $historyRecord = null;
 
-            // إذا تم رفع صورة جديدة لهذا السجل
-            if ($request->hasFile("history.{$index}.image")) {
-                $file = $request->file("history.{$index}.image");
-                $image = Image::read($file);
-                $image->cover(400, 300);
-                $filename = uniqid() . '_h.jpg';
-                $image->save(storage_path('app/public/annual_programs/' . $filename), 85);
-                $imagePath = 'annual_programs/' . $filename;
-            }
+        // 1. محاولة إيجاد السجل: أولاً بالـ ID، وإذا لم يوجد فبالسنة
+        if (!empty($h['id'])) {
+            $historyRecord = $program->histories()->find($h['id']);
+        } elseif (!empty($h['year'])) {
+            $historyRecord = $program->histories()->where('year', $h['year'])->first();
+        }
 
-            $program->histories()->create([
-                'year' => $h['year'] ?? null,
-                'image' => $imagePath,
-                'achievements' => $h['achievements'] ?? [],
-            ]);
+        // 2. معالجة الصورة
+        $imagePath = $historyRecord ? $historyRecord->image : null;
+
+        // إذا تم رفع ملف جديد في الأنسومنيا
+        if ($request->hasFile("history.{$index}.image")) {
+            // حذف القديمة إذا كانت موجودة
+            if ($imagePath) Storage::disk('public')->delete($imagePath);
+
+            $file = $request->file("history.{$index}.image");
+            $image = Image::read($file)->cover(400, 300);
+            $filename = uniqid() . '_h.jpg';
+            $image->save(storage_path('app/public/annual_programs/' . $filename), 85);
+            $imagePath = 'annual_programs/' . $filename;
+        }
+        // إذا لم يتم رفع ملف، نأخذ الرابط القديم المرسل وننظفه
+        elseif (!empty($h['image_url'])) {
+            $imagePath = str_replace(asset('storage/'), '', $h['image_url']);
+        }
+
+        // 3. التنفيذ: تحديث أو إنشاء
+        $dataToSave = [
+            'year' => $h['year'] ?? ($historyRecord ? $historyRecord->year : null),
+            'image' => $imagePath,
+            'achievements' => $h['achievements'] ?? ($historyRecord ? $historyRecord->achievements : []),
+        ];
+
+        if ($historyRecord) {
+            $historyRecord->update($dataToSave);
+        } else {
+            $program->histories()->create($dataToSave);
         }
     }
+}
 }
