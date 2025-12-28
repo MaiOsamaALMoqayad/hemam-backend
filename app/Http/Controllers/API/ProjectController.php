@@ -34,19 +34,5 @@ public function index()
 
         return ProjectResource::collection($projects);
     }
-    // عرض مشروع واحد
-    public function show($id)
-    {
-        try {
-            $project = Cache::remember("project:{$id}", 3600, function () use ($id) {
-                return Project::active()
-                    ->with('images')
-                    ->findOrFail($id);
-            });
-        } catch (\Exception $e) {
-            return response()->json(['error' => 'Project not found'], 404);
-        }
-
-        return new ProjectResource($project);
-    }
 }
+
