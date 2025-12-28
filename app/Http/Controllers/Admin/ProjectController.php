@@ -13,20 +13,29 @@ class ProjectController extends Controller
     /**
      * عرض كل المشاريع مع الصور
      */
-    public function index()
-    {
-        $projects = Cache::remember('projects:all', 60, function () {
-            return Project::with('images')->orderBy('order')->get()->map(function ($project) {
+ public function index()
+{
+
+    $projects = Cache::remember('projects:all', 60, function () {
+        return Project::with('images')
+            ->orderBy('order')
+            ->get()
+            ->map(function ($project) {
+
                 $project->images->transform(function ($img) {
-                    $img->image = $img->image ? asset('storage/' . $img->image) : null;
+                    if ($img->image) {
+                        $img->image = asset('storage/' . $img->image);
+                    }
                     return $img;
                 });
+
                 return $project;
             });
-        });
+    });
 
-        return response()->json($projects);
-    }
+    return response()->json($projects);
+}
+
 
     /**
      * إنشاء مشروع جديد مع رفع الصور
