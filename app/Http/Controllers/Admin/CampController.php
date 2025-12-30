@@ -133,9 +133,7 @@ class CampController extends Controller
 
             DB::commit();
 
-            // مسح الـ Cache
-            Cache::forget('camps:open');
-            Cache::forget('camps:closed');
+
 
             Log::info('Camp created successfully: ' . $camp->id);
 
@@ -282,10 +280,6 @@ class CampController extends Controller
 
         DB::commit();
 
-        // مسح الـ Cache
-        Cache::forget('camps:open');
-        Cache::forget('camps:closed');
-        Cache::forget("camp:details:{$camp->id}");
 
         return response()->json($this->formatCampResponse($camp->load(['locations', 'learnings', 'activities', 'images'])));
     } catch (\Illuminate\Validation\ValidationException $e) {
@@ -316,10 +310,7 @@ class CampController extends Controller
 
             DB::commit();
 
-            // مسح الـ Cache
-            Cache::forget('camps:open');
-            Cache::forget('camps:closed');
-            Cache::forget("camp:details:{$camp->id}");
+
 
             Log::info('Camp deleted successfully: ' . $camp->id);
 

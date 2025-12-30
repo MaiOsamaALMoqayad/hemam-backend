@@ -70,4 +70,5 @@ class CampController extends Controller
 
         return new CampDetailResource($campDetails);
     }
+    
 }
