@@ -192,13 +192,16 @@ class CampController extends Controller
             'activities.*.description_en' => 'nullable|string',
             'images' => 'nullable|array',
             'images.*' => 'image|max:2048',
+            'existing_images' => 'nullable|array',
         ]);
 
         DB::beginTransaction();
 
         // تحديث الصورة الرئيسية إذا تم رفع واحدة جديدة
         if ($request->hasFile('main_image')) {
-            Storage::disk('public')->delete($camp->main_image);
+            if ($camp->main_image) {
+                Storage::disk('public')->delete($camp->main_image);
+            }
             $mainImagePath = $this->uploadImage($request->file('main_image'), 'camps', 1200, 800);
             $camp->main_image = $mainImagePath;
         }
@@ -221,7 +224,7 @@ class CampController extends Controller
             'start_date' => $request->has('start_date') ? $data['start_date'] : $camp->start_date,
             'duration' => $request->has('duration') ? $data['duration'] : $camp->duration,
             'capacity' => $request->has('capacity') ? $data['capacity'] : $camp->capacity,
-            'is_open' => $request->has('is_open') ? $data['is_open'] : $camp->is_open,
+            'is_open' => $request->has('is_open') ? filter_var($data['is_open'], FILTER_VALIDATE_BOOLEAN) : $camp->is_open,
             'status' => $request->has('status') ? $data['status'] : $camp->status,
         ]);
 
@@ -263,17 +266,25 @@ class CampController extends Controller
         }
 
         // تحديث الصور إذا تم إرسالها
-        if ($request->hasFile('images')) {
-            foreach ($camp->images as $img) {
+        $existingImageIds = $request->input('existing_images', []);
+        
+        // حذف الصور غير الموجودة في القائمة المرسلة
+        foreach ($camp->images as $img) {
+            if (!in_array($img->id, $existingImageIds)) {
                 Storage::disk('public')->delete($img->image);
+                $img->delete();
             }
-            $camp->images()->delete();
+        }
+
+        // إضافة الصور الجديدة
+        if ($request->hasFile('images')) {
+            $lastOrder = $camp->images()->max('order') ?? -1;
             foreach ($request->file('images') as $index => $file) {
                 $imagePath = $this->uploadImage($file, 'camps', 800, 600);
                 CampImage::create([
                     'camp_id' => $camp->id,
                     'image' => $imagePath,
-                    'order' => $index,
+                    'order' => $lastOrder + 1 + $index,
                 ]);
             }
         }

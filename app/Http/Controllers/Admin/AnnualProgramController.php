@@ -2,16 +2,17 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Models\HistoryImage;
 use Illuminate\Http\Request;
+use App\Models\AnnualProgram;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
-use App\Http\Controllers\Controller;
-use App\Models\AnnualProgram;
 use App\Http\Resources\AnnualProgramResource;
 use Intervention\Image\Laravel\Facades\Image;
 use App\Http\Resources\AnnualProgramSummaryResource;
-use App\Models\HistoryImage;
 
 class AnnualProgramController extends Controller
 {
@@ -221,43 +222,78 @@ class AnnualProgramController extends Controller
         return response()->json(['message' => 'تم حذف البرنامج بنجاح']);
     }
 
- private function processHistory($program, $historyData, $request)
+private function processHistory($program, $historyData, $request)
 {
-    foreach ($historyData as $index => $h) {
+    DB::transaction(function () use ($program, $historyData, $request) {
 
-        // 1. إيجاد أو إنشاء سنة
-        $history = $program->histories()
-            ->firstOrCreate(
-                ['year' => $h['year']],
-                ['achievements' => $h['achievements'] ?? []]
-            );
+        $keepHistoryIds = [];
 
-        // 2. تحديث الإنجازات
-        if (isset($h['achievements'])) {
-            $history->update([
-                'achievements' => $h['achievements']
-            ]);
-        }
+        foreach ($historyData as $index => $h) {
 
-        // 3. إضافة صور متعددة
-        if ($request->hasFile("history.$index.images")) {
+            // 1. إيجاد أو تحديث السنة
+            $history = null;
 
-            foreach ($request->file("history.$index.images") as $file) {
+            if (isset($h['id'])) {
+                $history = $program->histories()->find($h['id']);
+            }
 
-                $image = Image::read($file)->cover(400, 300);
-                $filename = uniqid() . '_h.jpg';
-
-                $image->save(
-                    storage_path("app/public/annual_programs/$filename"),
-                    85
+            if (!$history) {
+                $history = $program->histories()->firstOrCreate(
+                    ['year' => $h['year']],
+                    ['achievements' => $h['achievements'] ?? []]
                 );
-
-                $history->images()->create([
-                    'image' => "annual_programs/$filename"
+            } else {
+                $history->update([
+                    'year' => $h['year'] ?? $history->year,
+                    'achievements' => $h['achievements'] ?? []
                 ]);
             }
-        }
-    }
-}
 
+            if (!$history) {
+                continue;
+            }
+
+            $keepHistoryIds[] = $history->id;
+
+            // 2. معالجة الصور الموجودة
+            $existingImageIds = $h['existing_images'] ?? [];
+            if (!is_array($existingImageIds)) {
+                $existingImageIds = [];
+            }
+
+            foreach ($history->images as $currentImg) {
+                if (!in_array($currentImg->id, $existingImageIds)) {
+                    Storage::disk('public')->delete($currentImg->image);
+                    $currentImg->delete();
+                }
+            }
+
+            // 3. إضافة صور جديدة
+            if ($request->hasFile("history.$index.images")) {
+                foreach ($request->file("history.$index.images") as $file) {
+                    $image = Image::read($file)->cover(400, 300);
+                    $filename = uniqid() . '_h.jpg';
+                    $image->save(
+                        storage_path("app/public/annual_programs/$filename"),
+                        85
+                    );
+
+                    $history->images()->create([
+                        'image' => "annual_programs/$filename"
+                    ]);
+                }
+            }
+        }
+
+        // 4. حذف السنين التي لم تعد موجودة
+        foreach ($program->histories as $oldHistory) {
+            if (!in_array($oldHistory->id, $keepHistoryIds)) {
+                foreach ($oldHistory->images as $img) {
+                    Storage::disk('public')->delete($img->image);
+                }
+                $oldHistory->delete();
+            }
+        }
+    });
+}
 }
