@@ -62,27 +62,19 @@ class ProjectController extends Controller
                 'is_active' => $data['is_active'] ?? true,
             ]);
 
-            foreach ($request->file('images') as $index => $file) {
-                $filename = $this->saveImage($file, 'projects');
-                ProjectImage::create([
-                    'project_id' => $project->id,
-                    'image' => 'projects/' . $filename,
-                    'order' => $index,
-                ]);
+            if ($request->hasFile('images')) {
+                $this->processImages($project, $request->file('images'));
             }
 
             DB::commit();
             Cache::forget('projects:all');
 
             $project->load('images');
-
-            // 2. تعديل مسارات الصور باستخدام transform
             $project->images->transform(function ($img) {
                 $img->image = $img->image ? asset('storage/' . $img->image) : null;
                 return $img;
             });
 
-            // 3. إرجاع كائن المشروع المفرد
             return response()->json($project, 201);
         } catch (\Exception $e) {
             DB::rollBack();
@@ -111,8 +103,8 @@ class ProjectController extends Controller
             'title_en' => 'nullable|string|max:255',
             'description_ar' => 'required|string',
             'description_en' => 'nullable|string',
-            'images.*' => 'mimes:jpeg,png,jpg|max:2048',
-            'images.*' => 'mimes:jpeg,png,jpg|max:2048',
+            'images.*' => 'image|max:2048',
+            'existing_images' => 'nullable|array',
             'order' => 'nullable|integer',
             'is_active' => 'nullable|boolean',
         ]);
@@ -126,22 +118,19 @@ class ProjectController extends Controller
                 'is_active' => $data['is_active'] ?? $project->is_active,
             ]);
 
-            if ($request->hasFile('images')) {
-                // حذف الصور القديمة
-                foreach ($project->images as $img) {
+            // Sync existing images
+            $existingImageIds = $request->input('existing_images', []);
+            $currentImages = $project->images;
+            foreach ($currentImages as $img) {
+                if (!in_array($img->id, $existingImageIds)) {
                     Storage::disk('public')->delete($img->image);
+                    $img->delete();
                 }
-                $project->images()->delete();
+            }
 
-                // رفع الصور الجديدة
-                foreach ($request->file('images') as $index => $file) {
-                    $filename = $this->saveImage($file, 'projects');
-                    ProjectImage::create([
-                        'project_id' => $project->id,
-                        'image' => 'projects/' . $filename,
-                        'order' => $index,
-                    ]);
-                }
+            // Upload new images
+            if ($request->hasFile('images')) {
+                $this->processImages($project, $request->file('images'));
             }
 
             DB::commit();
@@ -154,6 +143,19 @@ class ProjectController extends Controller
             DB::rollBack();
             Log::error('Project update error: ' . $e->getMessage());
             return response()->json(['message' => 'حدث خطأ أثناء تحديث المشروع'], 500);
+        }
+    }
+
+    private function processImages($project, $files)
+    {
+        $lastOrder = $project->images()->max('order') ?? -1;
+        foreach ($files as $index => $file) {
+            $filename = $this->saveImage($file, 'projects');
+            ProjectImage::create([
+                'project_id' => $project->id,
+                'image' => 'projects/' . $filename,
+                'order' => $lastOrder + 1 + $index,
+            ]);
         }
     }
 

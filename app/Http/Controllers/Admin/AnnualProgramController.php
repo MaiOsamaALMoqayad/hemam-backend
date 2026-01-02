@@ -222,42 +222,74 @@ class AnnualProgramController extends Controller
     }
 
  private function processHistory($program, $historyData, $request)
-{
-    foreach ($historyData as $index => $h) {
-
-        // 1. إيجاد أو إنشاء سنة
-        $history = $program->histories()
-            ->firstOrCreate(
-                ['year' => $h['year']],
-                ['achievements' => $h['achievements'] ?? []]
-            );
-
-        // 2. تحديث الإنجازات
-        if (isset($h['achievements'])) {
-            $history->update([
-                'achievements' => $h['achievements']
-            ]);
-        }
-
-        // 3. إضافة صور متعددة
-        if ($request->hasFile("history.$index.images")) {
-
-            foreach ($request->file("history.$index.images") as $file) {
-
-                $image = Image::read($file)->cover(400, 300);
-                $filename = uniqid() . '_h.jpg';
-
-                $image->save(
-                    storage_path("app/public/annual_programs/$filename"),
-                    85
-                );
-
-                $history->images()->create([
-                    'image' => "annual_programs/$filename"
-                ]);
-            }
-        }
-    }
-}
+ {
+     $keepHistoryIds = [];
+ 
+     foreach ($historyData as $index => $h) {
+         // 1. إيجاد أو تحديث السنة
+         $history = null;
+         if (isset($h['id'])) {
+             $history = $program->histories()->find($h['id']);
+         }
+ 
+         if (!$history) {
+             // البحث عن طريق السنة كخيار بديل إذا لم يتوفر ID
+             $history = $program->histories()->firstOrCreate(
+                 ['year' => $h['year']],
+                 ['achievements' => $h['achievements'] ?? []]
+             );
+         } else {
+             $history->update([
+                 'year' => $h['year'] ?? $history->year,
+                 'achievements' => $h['achievements'] ?? []
+             ]);
+         }
+ 
+         $keepHistoryIds[] = $history->id;
+ 
+         // 2. معالجة الصور الموجودة (حذف ما لم يتم إرساله)
+         $existingImageIds = isset($h['existing_images']) ? $h['existing_images'] : [];
+         
+         // تأكد أنها مصفوفة
+         if (!is_array($existingImageIds)) {
+             $existingImageIds = [];
+         }
+ 
+         // الحصول على الصور الحالية في الداتابيز لهذه السنة
+         $currentImages = $history->images;
+         foreach ($currentImages as $currentImg) {
+             if (!in_array($currentImg->id, $existingImageIds)) {
+                 // حذف الصورة من التخزين والداتابيز
+                 Storage::disk('public')->delete($currentImg->image);
+                 $currentImg->delete();
+             }
+         }
+ 
+         // 3. إضافة صور جديدة
+         if ($request->hasFile("history.$index.images")) {
+             foreach ($request->file("history.$index.images") as $file) {
+                 $image = Image::read($file)->cover(400, 300);
+                 $filename = uniqid() . '_h.jpg';
+                 $image->save(storage_path("app/public/annual_programs/" . $filename), 85);
+ 
+                 $history->images()->create([
+                     'image' => "annual_programs/$filename"
+                 ]);
+             }
+         }
+     }
+ 
+     // 4. حذف السنين التي لم تعد موجودة
+     $allHistories = $program->histories;
+     foreach ($allHistories as $oldHistory) {
+         if (!in_array($oldHistory->id, $keepHistoryIds)) {
+             // حذف صور السنة من التخزين أولاً
+             foreach ($oldHistory->images as $img) {
+                 Storage::disk('public')->delete($img->image);
+             }
+             $oldHistory->delete();
+         }
+     }
+ }
 
 }
