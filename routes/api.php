@@ -1,16 +1,17 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\API\AnnualProgramController;
-use App\Http\Controllers\API\ProjectController;
 use App\Http\Controllers\API\CampController;
-use App\Http\Controllers\API\TrainerController;
-use App\Http\Controllers\API\StatisticsController;
-use App\Http\Controllers\API\SettingController;
 use App\Http\Controllers\API\SearchController;
 use App\Http\Controllers\API\ContactController;
-use App\Http\Controllers\API\TrainerApplicationController;
+use App\Http\Controllers\API\ProjectController;
+use App\Http\Controllers\API\SettingController;
+use App\Http\Controllers\API\TrainerController;
+use App\Http\Controllers\Admin\ReviewController;
+use App\Http\Controllers\API\StatisticsController;
 use App\Http\Controllers\API\ConsultationController;
+use App\Http\Controllers\API\AnnualProgramController;
+use App\Http\Controllers\API\TrainerApplicationController;
 
 // ---------------------------
 // API Version 1
@@ -60,6 +61,11 @@ Route::prefix('v1')->group(function () {
     Route::post('/contact', [ContactController::class, 'store']);
     Route::post('/trainer-applications', [TrainerApplicationController::class, 'store']);
     Route::post('/consultations', [ConsultationController::class, 'store']);
+
+    // ---------------------------
+    // Reviews
+    // ---------------------------
+    Route::get('/reviews', [\App\Http\Controllers\Api\ReviewController::class, 'index']);
 });
 
 
@@ -67,7 +73,6 @@ Route::prefix('v1')->group(function () {
 Route::prefix('admin')->group(function () {
     Route::post('/login', [\App\Http\Controllers\Admin\AuthController::class, 'login'])->name('login');
 
-    // بس auth:sanctum - الـ Cookie middleware شغال تلقائياً
     Route::middleware(['auth:sanctum'])->group(function () {
         Route::post('/logout', [\App\Http\Controllers\Admin\AuthController::class, 'logout']);
         Route::get('/user', [\App\Http\Controllers\Admin\AuthController::class, 'user']);
@@ -99,5 +104,10 @@ Route::prefix('admin')->group(function () {
 
         Route::get('settings', [\App\Http\Controllers\Admin\SettingController::class, 'index']);
         Route::put('settings', [\App\Http\Controllers\Admin\SettingController::class, 'update']);
+
+        Route::get('reviews', [ReviewController::class, 'index']);
+        Route::post('reviews', [ReviewController::class, 'store']);
+        Route::put('reviews/{id}', [ReviewController::class, 'update']);
+        Route::delete('reviews/{id}', [ReviewController::class, 'destroy']);
     });
 });
