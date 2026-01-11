@@ -12,9 +12,8 @@ class DatabaseSeeder extends Seeder
             AdminUserSeeder::class,
             StatisticsSeeder::class,
             SettingsSeeder::class,
-            AnnualProgramSeeder::class,
+            ActivitySeeder::class,
             ProjectSeeder::class,
-            CampSeeder::class,
             TrainerSeeder::class,
         ]);
 

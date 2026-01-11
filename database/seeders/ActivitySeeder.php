@@ -3,23 +3,24 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use App\Models\AnnualProgram;
-use App\Models\AnnualProgramHistory;
+use App\Models\Activity;
+use App\Models\ActivityHistory;
 
-class AnnualProgramSeeder extends Seeder
+class ActivitySeeder extends Seeder
 {
     public function run(): void
     {
-        $program = AnnualProgram::create([
+        $activity = Activity::create([
             'title' => [
-                'ar' => 'برنامج القيادة الصيفي',
-                'en' => 'Summer Leadership Program',
+                'ar' => 'نشاط القيادة الصيفي',
+                'en' => 'Summer Leadership Activity',
             ],
             'description' => [
-                'ar' => 'برنامج قيادي مكثّف لمدة 8 أسابيع يستهدف تطوير مهارات الشباب من خلال أنشطة عملية ومشاريع جماعية.',
-                'en' => 'An intensive 8-week program designed to develop the next generation of leaders through hands-on projects.',
+                'ar' => 'نشاط قيادي مكثّف لمدة 8 أسابيع لتطوير مهارات الشباب من خلال مشاريع عملية.',
+                'en' => 'An intensive 8-week activity designed to develop the next generation of leaders through hands-on projects.',
             ],
-            'image' => 'annual_programs/Almagd.jpg',
+            'image' => 'activities/Almagd.jpg',
+            'season' => 'summer',
             'order' => 1,
             'is_open' => true,
             'application_deadline' => '15 مارس 2025',
@@ -28,10 +29,9 @@ class AnnualProgramSeeder extends Seeder
         ]);
 
         // إضافة الـ history
-        $program->histories()->createMany([
+        $activity->activity_histories()->createMany([
             [
                 'year' => 2024,
-                'image' => 'annual_programs/annual11.jpg',
                 'achievements' => [
                     'تنفيذ 12 مشروعًا مجتمعيًا مؤثرًا',
                     'حصول 85% من المشاركين على شهادات قيادة',
@@ -41,7 +41,6 @@ class AnnualProgramSeeder extends Seeder
             ],
             [
                 'year' => 2023,
-                'image' => 'annual_programs/history_2023.jpg',
                 'achievements' => [
                     'تنفيذ 10 مشاريع مجتمعية ناجحة',
                     'معدل رضا 92% من المشاركين',
@@ -51,7 +50,6 @@ class AnnualProgramSeeder extends Seeder
             ],
             [
                 'year' => 2022,
-                'image' => 'annual_programs/history_2022.jpg',
                 'achievements' => [
                     'تخرج أول دفعة تضم 40 مشاركًا',
                     'تنفيذ 8 مبادرات مجتمعية مستدامة',

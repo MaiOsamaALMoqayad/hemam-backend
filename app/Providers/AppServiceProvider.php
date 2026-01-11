@@ -27,8 +27,7 @@ class AppServiceProvider extends ServiceProvider
         // 1. Force Arabic as default
         app()->setLocale('ar');
 
-        // 2. ربط الـ Observer بالموديل (هذا هو الكود الجديد)
-        Camp::observe(CampObserver::class);
+
 
         // 3. Rate Limiting للـ API العام
         RateLimiter::for('api', function (Request $request) {

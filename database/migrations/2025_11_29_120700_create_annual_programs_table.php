@@ -11,13 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('annual_programs', function (Blueprint $table) {
+        Schema::create('activities', function (Blueprint $table) {
             $table->id();
             $table->json('title');  // {ar: "", en: ""}
             $table->json('description');  // {ar: "", en: ""}
             $table->string('image');
             $table->unsignedTinyInteger('order')->default(0);
             $table->boolean('is_active')->default(true);
+            $table->enum('season', ['summer','winter'])->nullable();
             $table->timestamps();
 
             // Indexes للأداء

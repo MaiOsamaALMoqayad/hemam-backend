@@ -7,9 +7,9 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('annual_program_histories', function (Blueprint $table) {
+        Schema::create('activity_histories', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('annual_program_id')->constrained()->onDelete('cascade');
+            $table->foreignId('activity_id')->constrained('activities')->cascadeOnDelete();
             $table->integer('year');
             $table->string('image')->nullable();
             $table->json('achievements')->nullable();
@@ -19,6 +19,6 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::dropIfExists('annual_program_histories');
+        Schema::dropIfExists('activity_histories');
     }
 };

@@ -8,7 +8,7 @@ return new class extends Migration
 {
    public function up(): void
 {
-    Schema::table('annual_programs', function (Blueprint $table) {
+    Schema::table('activities', function (Blueprint $table) {
         // حذف is_active
         $table->dropColumn('is_active');
 
@@ -25,7 +25,7 @@ return new class extends Migration
 
 public function down(): void
 {
-    Schema::table('annual_programs', function (Blueprint $table) {
+    Schema::table('activities', function (Blueprint $table) {
 
         $table->boolean('is_active')->default(true);
 

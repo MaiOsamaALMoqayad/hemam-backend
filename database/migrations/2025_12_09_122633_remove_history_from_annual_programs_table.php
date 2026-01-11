@@ -7,14 +7,14 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('annual_programs', function (Blueprint $table) {
+        Schema::table('activities', function (Blueprint $table) {
             $table->dropColumn('history');
         });
     }
 
     public function down(): void
     {
-        Schema::table('annual_programs', function (Blueprint $table) {
+        Schema::table('activities', function (Blueprint $table) {
             $table->json('history')->nullable();
         });
     }

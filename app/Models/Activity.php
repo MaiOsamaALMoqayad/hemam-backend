@@ -4,14 +4,15 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class AnnualProgram extends Model
+class Activity extends Model
 {
     protected $fillable = [
         'title',
         'description',
         'image',
+        'season',               // جديد: الصيفي أو الشتوي
         'order',
-        'is_open',
+        'is_active',            // بدل is_open
         'application_deadline',
         'duration',
         'capacity',
@@ -20,13 +21,11 @@ class AnnualProgram extends Model
     protected $casts = [
         'title' => 'array',
         'description' => 'array',
-        'is_open' => 'boolean',
+        'is_active' => 'boolean',
     ];
 
-
-
     /**
-     * Scope للبرامج النشطة فقط
+     * Scope للأنشطة النشطة فقط
      */
     public function scopeActive($query)
     {
@@ -46,7 +45,7 @@ class AnnualProgram extends Model
      */
     public function getTranslated(string $field): string
     {
-        $data = $this->{$field}; // بسبب $casts، القيمة مصفوفة جاهزة
+        $data = $this->{$field}; // بسبب $casts
         $locale = app()->getLocale();
 
         return $data[$locale] ?? $data['ar'] ?? '';
@@ -60,11 +59,14 @@ class AnnualProgram extends Model
         return $this->image ? asset('storage/' . $this->image) : null;
     }
 
-    // AnnualProgram.php
+    /**
+     * العلاقة مع histories
+     */
+// داخل كلاس Activity
 public function histories()
 {
-    return $this->hasMany(AnnualProgramHistory::class, 'annual_program_id');
+    // الربط عبر activity_id
+    return $this->hasMany(ActivityHistory::class, 'activity_id');
 }
-
 
 }
