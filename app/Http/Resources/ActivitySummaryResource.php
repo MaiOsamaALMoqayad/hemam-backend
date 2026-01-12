@@ -16,6 +16,10 @@ class ActivitySummaryResource extends JsonResource
                 'ar' => $title['ar'] ?? '',
                 'en' => $title['en'] ?? '',
             ],
+            'description' => [
+                'ar' => $this->description['ar'] ?? '',
+                'en' => $this->description['en'] ?? '',
+            ],
             'image' => $this->image ? asset('storage/' . $this->image) : null,
             'is_open' => $this->is_open,
             'season' => $this->season,

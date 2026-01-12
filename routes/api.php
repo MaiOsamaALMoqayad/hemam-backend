@@ -72,9 +72,8 @@ Route::prefix('admin')->group(function () {
         Route::get('/check', [\App\Http\Controllers\Admin\AuthController::class, 'check']);
         Route::get('/dashboard', [\App\Http\Controllers\Admin\DashboardController::class, 'index']);
 
-        Route::apiResource('annual-programs', \App\Http\Controllers\Admin\AnnualProgramController::class);
+        Route::apiResource('activities', \App\Http\Controllers\Admin\ActivityController::class);
         Route::apiResource('projects', \App\Http\Controllers\Admin\ProjectController::class);
-        Route::apiResource('camps', \App\Http\Controllers\Admin\CampController::class);
         Route::apiResource('trainers', \App\Http\Controllers\Admin\TrainerController::class);
 
         Route::get('contacts', [\App\Http\Controllers\Admin\ContactMessageController::class, 'index']);

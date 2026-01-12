@@ -31,7 +31,9 @@ class ActivityResource extends JsonResource
                 return [
                     'id' => $h->id,
                     'year' => $h->year,
-                    'achievements' => $h->achievements ?? [],
+                    'achievements' => is_string($h->achievements)
+                                      ? json_decode($h->achievements, true)
+                                      : ($h->achievements ?? []),
                     'images' => $h->images->map(function ($img) {
                         return [
                             'id' => $img->id,
