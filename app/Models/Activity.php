@@ -75,4 +75,10 @@ public function reviews()
     {
         return $this->hasMany(Review::class);
     }
+    public function images()
+{
+    return $this->hasMany(ActivityImage::class);
+}
+
+
 }

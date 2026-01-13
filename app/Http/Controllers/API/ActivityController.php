@@ -38,22 +38,23 @@ class ActivityController extends Controller
      * GET /api/v1/activities/{id}
      * عرض نشاط واحد مع التاريخ والهستوري
      */
-    public function show($id)
-    {
-        try {
-            $activity = Cache::remember("activities:{$id}", 3600, function () use ($id) {
-                return Activity::with(['histories.images'])->findOrFail($id);
-            });
+ public function show($id)
+{
+    try {
+        $activity = Cache::remember("activities:{$id}", 3600, function () use ($id) {
+            return Activity::with('images', 'histories.images')->findOrFail($id);
+        });
 
-            return new ActivityResource($activity);
+        return new ActivityResource($activity);
 
-        } catch (\Throwable $e) {
-            Log::error("Activity API Error (show): " . $e->getMessage());
+    } catch (\Throwable $e) {
+        Log::error("Activity API Error (show): " . $e->getMessage());
 
-            return response()->json([
-                'status' => false,
-                'message' => 'النشاط المطلوب غير موجود',
-            ], 404);
-        }
+        return response()->json([
+            'status' => false,
+            'message' => 'النشاط المطلوب غير موجود',
+        ], 404);
     }
+}
+
 }

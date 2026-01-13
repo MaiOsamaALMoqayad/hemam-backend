@@ -102,5 +102,10 @@ Route::prefix('admin')->group(function () {
         Route::get('reviews', [\App\Http\Controllers\Admin\ReviewController::class, 'index']);
         Route::put('reviews/{id}/approve', [\App\Http\Controllers\Admin\ReviewController::class, 'approve']);
         Route::delete('reviews/{id}', [\App\Http\Controllers\Admin\ReviewController::class, 'destroy']);
+
+        // Activity Carousel Image Management
+        Route::get('activities/{activityId}/images', [\App\Http\Controllers\Admin\ActivityCarouselController::class, 'index']);
+        Route::post('activities/{activityId}/images', [\App\Http\Controllers\Admin\ActivityCarouselController::class, 'store']);
+        Route::delete('activities/images/{id}', [\App\Http\Controllers\Admin\ActivityCarouselController::class, 'destroy']);
     });
 });

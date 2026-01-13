@@ -21,7 +21,11 @@ class ActivityResource extends JsonResource
                 'ar' => $description['ar'] ?? '',
                 'en' => $description['en'] ?? '',
             ],
-            'image' => $this->image ? asset('storage/' . $this->image) : null,
+            'carousel' => $this->images->map(function ($img) {
+                return asset('storage/' . $img->image);
+            }),
+
+
             'isOpen' => (bool)$this->is_open,
             'season' => $this->season, // الصيفي / الشتوي
             'applicationDeadline' => $this->application_deadline,
@@ -32,8 +36,8 @@ class ActivityResource extends JsonResource
                     'id' => $h->id,
                     'year' => $h->year,
                     'achievements' => is_string($h->achievements)
-                                      ? json_decode($h->achievements, true)
-                                      : ($h->achievements ?? []),
+                        ? json_decode($h->achievements, true)
+                        : ($h->achievements ?? []),
                     'images' => $h->images->map(function ($img) {
                         return [
                             'id' => $img->id,

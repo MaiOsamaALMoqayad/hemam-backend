@@ -3,12 +3,10 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
-use App\Http\Resources\AnnualProgramResource;
+use App\Http\Resources\ActivityResource;
 use App\Http\Resources\ProjectResource;
-use App\Http\Resources\CampResource;
-use App\Models\AnnualProgram;
+use App\Models\Activity;
 use App\Models\Project;
-use App\Models\Camp;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
@@ -29,14 +27,14 @@ class SearchController extends Controller
             $searchTerm = trim($query);
             $locale = app()->getLocale();
 
-            // 🔍 helper SQL snippet
+            //  helper SQL snippet
             $sqlTitle = "JSON_UNQUOTE(JSON_EXTRACT(title, '$.\"%s\"')) LIKE ?";
             $sqlDesc  = "JSON_UNQUOTE(JSON_EXTRACT(description, '$.\"%s\"')) LIKE ?";
 
             // =====================================================
-            // 📌 1) Annual Programs
+            // 📌 1) Activity
             // =====================================================
-            $annualPrograms = AnnualProgram::where('is_open', true)
+            $activities = Activity::where('is_open', true)
                 ->where(function ($q) use ($searchTerm, $locale, $sqlTitle, $sqlDesc) {
                     $q->whereRaw(sprintf($sqlTitle, $locale), ["%{$searchTerm}%"])
                       ->orWhereRaw(sprintf($sqlDesc, $locale), ["%{$searchTerm}%"])
@@ -62,35 +60,19 @@ class SearchController extends Controller
                 ->limit(10)
                 ->get();
 
-            // =====================================================
-            // 📌 3) Camps
-            // =====================================================
-            $camps = Camp::where('is_open', true)
-                ->where(function ($q) use ($searchTerm, $locale, $sqlTitle, $sqlDesc) {
-                    $q->whereRaw(sprintf($sqlTitle, $locale), ["%{$searchTerm}%"])
-                      ->orWhereRaw(sprintf($sqlDesc, $locale), ["%{$searchTerm}%"])
-                      ->orWhereRaw(sprintf($sqlTitle, 'ar'), ["%{$searchTerm}%"])
-                      ->orWhereRaw(sprintf($sqlDesc, 'ar'), ["%{$searchTerm}%"]);
-                })
-                ->with('locations')
-                ->ordered()
-                ->limit(10)
-                ->get();
+
 
             // =====================================================
             // 🔢 Total Count
             // =====================================================
             $totalResults =
-                $annualPrograms->count() +
-                $projects->count() +
-                $camps->count();
-
+                $activities->count() +
+                $projects->count() ;
             return response()->json([
                 'query' => $searchTerm,
                 'total_results' => $totalResults,
-                'annual_programs' => AnnualProgramResource::collection($annualPrograms),
+                'activities' => ActivityResource::collection($activities),
                 'projects' => ProjectResource::collection($projects),
-                'camps' => CampResource::collection($camps),
             ]);
 
         } catch (\Throwable $e) {
