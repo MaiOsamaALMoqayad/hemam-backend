@@ -2,13 +2,14 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\API\CampController;
+use App\Http\Controllers\API\ReviewController;
 use App\Http\Controllers\API\SearchController;
 use App\Http\Controllers\API\ContactController;
 use App\Http\Controllers\API\ProjectController;
 use App\Http\Controllers\API\SettingController;
 use App\Http\Controllers\API\TrainerController;
-use App\Http\Controllers\API\ReviewController;
 use App\Http\Controllers\API\ActivityController;
+use App\Http\Controllers\Api\DonationController;
 use App\Http\Controllers\API\StatisticsController;
 use App\Http\Controllers\API\ConsultationController;
 use App\Http\Controllers\API\TrainerApplicationController;
@@ -54,6 +55,8 @@ Route::prefix('v1')->group(function () {
     Route::post('/contact', [ContactController::class, 'store']);
     Route::post('/trainer-applications', [TrainerApplicationController::class, 'store']);
     Route::post('/consultations', [ConsultationController::class, 'store']);
+    Route::post('/donations', [DonationController::class, 'store']);
+
 
     // ---------------------------
     // Reviews
