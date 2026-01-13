@@ -14,10 +14,9 @@ class ContactController extends Controller
     public function store(ContactStoreRequest $request)
     {
         try {
-            $identifier = $request->email; // يمكنك تغييره إلى phone إذا تحب
+            $identifier = $request->email;
             $cacheKey = "contact:throttle:{$identifier}";
 
-            // تحقق من الرسائل المتكررة / Throttle
             if (Cache::has($cacheKey)) {
                 return response()->json([
                     'success' => false,

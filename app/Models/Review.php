@@ -8,10 +8,16 @@ class Review extends Model
 {
     protected $fillable = [
         'person_name',
-        'program_name',
+        'activity_id',
         'rating',
         'comment',
-        'is_published'
+        'is_published',
     ];
+
+    public function activity()
+    {
+        return $this->belongsTo(Activity::class);
+    }
 }
+
 

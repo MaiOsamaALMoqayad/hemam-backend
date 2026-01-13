@@ -63,10 +63,16 @@ class Activity extends Model
      * العلاقة مع histories
      */
 // داخل كلاس Activity
+public function activity_histories()
+{
+    return $this->histories();
+}
 public function histories()
 {
-    // الربط عبر activity_id
-    return $this->hasMany(ActivityHistory::class, 'activity_id');
+    return $this->hasMany(ActivityHistory::class);
 }
-
+public function reviews()
+    {
+        return $this->hasMany(Review::class);
+    }
 }

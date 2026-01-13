@@ -7,7 +7,7 @@ use App\Http\Controllers\API\ContactController;
 use App\Http\Controllers\API\ProjectController;
 use App\Http\Controllers\API\SettingController;
 use App\Http\Controllers\API\TrainerController;
-use App\Http\Controllers\Admin\ReviewController;
+use App\Http\Controllers\API\ReviewController;
 use App\Http\Controllers\API\ActivityController;
 use App\Http\Controllers\API\StatisticsController;
 use App\Http\Controllers\API\ConsultationController;
@@ -58,7 +58,9 @@ Route::prefix('v1')->group(function () {
     // ---------------------------
     // Reviews
     // ---------------------------
-    Route::get('/reviews', [\App\Http\Controllers\Api\ReviewController::class, 'index']);
+    Route::post('/reviews', [ReviewController::class, 'store']);
+    Route::get('/activities/{activityId}/reviews', [ReviewController::class, 'activityReviews']);
+    Route::get('/reviews', [ReviewController::class, 'index']);
 });
 
 
@@ -97,9 +99,8 @@ Route::prefix('admin')->group(function () {
         Route::get('settings', [\App\Http\Controllers\Admin\SettingController::class, 'index']);
         Route::put('settings', [\App\Http\Controllers\Admin\SettingController::class, 'update']);
 
-        Route::get('reviews', [ReviewController::class, 'index']);
-        Route::post('reviews', [ReviewController::class, 'store']);
-        Route::put('reviews/{id}', [ReviewController::class, 'update']);
-        Route::delete('reviews/{id}', [ReviewController::class, 'destroy']);
+        Route::get('reviews', [\App\Http\Controllers\Admin\ReviewController::class, 'index']);
+        Route::put('reviews/{id}/approve', [\App\Http\Controllers\Admin\ReviewController::class, 'approve']);
+        Route::delete('reviews/{id}', [\App\Http\Controllers\Admin\ReviewController::class, 'destroy']);
     });
 });

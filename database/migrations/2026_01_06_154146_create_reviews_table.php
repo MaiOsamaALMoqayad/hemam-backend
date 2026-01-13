@@ -13,11 +13,18 @@ return new class extends Migration
     {
         Schema::create('reviews', function (Blueprint $table) {
             $table->id();
-            $table->string('person_name');     // اسم الشخص
-            $table->string('program_name');    // اسم البرنامج
-            $table->tinyInteger('rating');     // 1 - 5
-            $table->text('comment');
-            $table->boolean('is_published')->default(true);
+            $table->string('person_name');
+
+            $table->unsignedBigInteger('activity_id');
+            $table->foreign('activity_id')
+                ->references('id')
+                ->on('activities')
+                ->onDelete('cascade');
+
+            $table->unsignedTinyInteger('rating'); // 1-5
+            $table->text('comment')->nullable();
+
+            $table->boolean('is_published')->default(false); // admin approval
             $table->timestamps();
         });
     }
