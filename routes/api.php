@@ -14,101 +14,122 @@ use App\Http\Controllers\API\StatisticsController;
 use App\Http\Controllers\API\ConsultationController;
 use App\Http\Controllers\API\TrainerApplicationController;
 
+// استيراد متحكمات الأدمن لترتيب الكود
+use App\Http\Controllers\Admin\{
+    AuthController,
+    DashboardController,
+    ActivityController as AdminActivityController,
+    ProjectController as AdminProjectController,
+    TrainerController as AdminTrainerController,
+    ContactMessageController,
+    TrainerApplicationController as AdminTrainerApplicationController,
+    ConsultationController as AdminConsultationController,
+    StatisticsController as AdminStatisticsController,
+    SettingController as AdminSettingController,
+    ReviewController as AdminReviewController,
+    ActivityCarouselController
+};
+
 // ---------------------------
 // API Version 1
 // ---------------------------
 Route::prefix('v1')->group(function () {
 
-    // ---------------------------
-    // Annual Programs
-    // ---------------------------
+    // --- Public Resources ---
     Route::get('/activities', [ActivityController::class, 'index']);
     Route::get('/activities/{id}', [ActivityController::class, 'show']);
 
-    // ---------------------------
-    // Projects
-    // ---------------------------
     Route::get('/projects', [ProjectController::class, 'index']);
     Route::get('/projects/{id}', [ProjectController::class, 'show']);
 
-
-
-    // ---------------------------
-    // Trainers
-    // ---------------------------
     Route::get('/trainers', [TrainerController::class, 'index']);
-
-    // ---------------------------
-    // Statistics & Settings
-    // ---------------------------
     Route::get('/statistics', [StatisticsController::class, 'index']);
     Route::get('/settings', [SettingController::class, 'index']);
-
-    // ---------------------------
-    // Search
-    // ---------------------------
     Route::get('/search', [SearchController::class, 'index']);
 
-    // ---------------------------
-    // Forms
-    // ---------------------------
+    // --- Forms & Submissions ---
     Route::post('/contact', [ContactController::class, 'store']);
     Route::post('/trainer-applications', [TrainerApplicationController::class, 'store']);
     Route::post('/consultations', [ConsultationController::class, 'store']);
     Route::post('/donations', [DonationController::class, 'store']);
 
-
-    // ---------------------------
-    // Reviews
-    // ---------------------------
+    // --- Reviews ---
+    Route::get('/reviews', [ReviewController::class, 'index']);
     Route::post('/reviews', [ReviewController::class, 'store']);
     Route::get('/activities/{activityId}/reviews', [ReviewController::class, 'activityReviews']);
-    Route::get('/reviews', [ReviewController::class, 'index']);
+
+    // --- Khawatir  ---
+Route::prefix('khawatir')->group(function () {
+    Route::get('/categories', [\App\Http\Controllers\Api\Khawatir\CategoryController::class, 'index']);
+    Route::get('/categories/{category}/posts', [\App\Http\Controllers\Api\Khawatir\PostController::class, 'index']);
+    Route::get('/posts/{id}', [\App\Http\Controllers\Api\Khawatir\PostController::class, 'show']);
 });
+            });
 
 
+    // ---------------------------
+    // Admin Panel (Protected)
+    // ---------------------------
+    Route::prefix('admin')->group(function () {
+        // Public Admin Routes
+        Route::post('/login', [AuthController::class, 'login'])->name('login');
 
-Route::prefix('admin')->group(function () {
-    Route::post('/login', [\App\Http\Controllers\Admin\AuthController::class, 'login'])->name('login');
+        // Protected Admin Routes
+        Route::middleware(['auth:sanctum'])->group(function () {
+            Route::post('/logout', [AuthController::class, 'logout']);
+            Route::get('/user', [AuthController::class, 'user']);
+            Route::get('/check', [AuthController::class, 'check']);
+            Route::get('/dashboard', [DashboardController::class, 'index']);
 
-    Route::middleware(['auth:sanctum'])->group(function () {
-        Route::post('/logout', [\App\Http\Controllers\Admin\AuthController::class, 'logout']);
-        Route::get('/user', [\App\Http\Controllers\Admin\AuthController::class, 'user']);
-        Route::get('/check', [\App\Http\Controllers\Admin\AuthController::class, 'check']);
-        Route::get('/dashboard', [\App\Http\Controllers\Admin\DashboardController::class, 'index']);
+            // Main Resources
+            Route::apiResource('activities', AdminActivityController::class);
+            Route::apiResource('projects', AdminProjectController::class);
+            Route::apiResource('trainers', AdminTrainerController::class);
 
-        Route::apiResource('activities', \App\Http\Controllers\Admin\ActivityController::class);
-        Route::apiResource('projects', \App\Http\Controllers\Admin\ProjectController::class);
-        Route::apiResource('trainers', \App\Http\Controllers\Admin\TrainerController::class);
+            // Management
+            Route::prefix('contacts')->group(function () {
+                Route::get('/', [ContactMessageController::class, 'index']);
+                Route::get('/{contact}', [ContactMessageController::class, 'show']);
+                Route::put('/{contact}/mark-read', [ContactMessageController::class, 'markAsRead']);
+                Route::delete('/{contact}', [ContactMessageController::class, 'destroy']);
+            });
 
-        Route::get('contacts', [\App\Http\Controllers\Admin\ContactMessageController::class, 'index']);
-        Route::get('contacts/{contact}', [\App\Http\Controllers\Admin\ContactMessageController::class, 'show']);
-        Route::put('contacts/{contact}/mark-read', [\App\Http\Controllers\Admin\ContactMessageController::class, 'markAsRead']);
-        Route::delete('contacts/{contact}', [\App\Http\Controllers\Admin\ContactMessageController::class, 'destroy']);
+            Route::prefix('trainer-applications')->group(function () {
+                Route::get('/', [AdminTrainerApplicationController::class, 'index']);
+                Route::get('/{trainerApplication}', [AdminTrainerApplicationController::class, 'show']);
+                Route::put('/{trainerApplication}/status', [AdminTrainerApplicationController::class, 'updateStatus']);
+                Route::delete('/{trainerApplication}', [AdminTrainerApplicationController::class, 'destroy']);
+            });
 
-        Route::get('trainer-applications', [\App\Http\Controllers\Admin\TrainerApplicationController::class, 'index']);
-        Route::get('trainer-applications/{trainerApplication}', [\App\Http\Controllers\Admin\TrainerApplicationController::class, 'show']);
-        Route::put('trainer-applications/{trainerApplication}/status', [\App\Http\Controllers\Admin\TrainerApplicationController::class, 'updateStatus']);
-        Route::delete('trainer-applications/{trainerApplication}', [\App\Http\Controllers\Admin\TrainerApplicationController::class, 'destroy']);
+            Route::prefix('consultations')->group(function () {
+                Route::get('/', [AdminConsultationController::class, 'index']);
+                Route::get('/{consultation}', [AdminConsultationController::class, 'show']);
+                Route::put('/{consultation}/status', [AdminConsultationController::class, 'updateStatus']);
+                Route::delete('/{consultation}', [AdminConsultationController::class, 'destroy']);
+            });
 
-        Route::get('consultations', [\App\Http\Controllers\Admin\ConsultationController::class, 'index']);
-        Route::get('consultations/{consultation}', [\App\Http\Controllers\Admin\ConsultationController::class, 'show']);
-        Route::put('consultations/{consultation}/status', [\App\Http\Controllers\Admin\ConsultationController::class, 'updateStatus']);
-        Route::delete('consultations/{consultation}', [\App\Http\Controllers\Admin\ConsultationController::class, 'destroy']);
+            Route::get('statistics', [AdminStatisticsController::class, 'index']);
+            Route::put('statistics', [AdminStatisticsController::class, 'update']);
 
-        Route::get('statistics', [\App\Http\Controllers\Admin\StatisticsController::class, 'index']);
-        Route::put('statistics', [\App\Http\Controllers\Admin\StatisticsController::class, 'update']);
+            Route::get('settings', [AdminSettingController::class, 'index']);
+            Route::put('settings', [AdminSettingController::class, 'update']);
 
-        Route::get('settings', [\App\Http\Controllers\Admin\SettingController::class, 'index']);
-        Route::put('settings', [\App\Http\Controllers\Admin\SettingController::class, 'update']);
+            Route::prefix('reviews')->group(function () {
+                Route::get('/', [AdminReviewController::class, 'index']);
+                Route::put('/{id}/approve', [AdminReviewController::class, 'approve']);
+                Route::delete('/{id}', [AdminReviewController::class, 'destroy']);
+            });
 
-        Route::get('reviews', [\App\Http\Controllers\Admin\ReviewController::class, 'index']);
-        Route::put('reviews/{id}/approve', [\App\Http\Controllers\Admin\ReviewController::class, 'approve']);
-        Route::delete('reviews/{id}', [\App\Http\Controllers\Admin\ReviewController::class, 'destroy']);
+            // Images Management
+            Route::get('activities/{activityId}/images', [ActivityCarouselController::class, 'index']);
+            Route::post('activities/{activityId}/images', [ActivityCarouselController::class, 'store']);
+            Route::delete('activities/images/{id}', [ActivityCarouselController::class, 'destroy']);
 
-        // Activity Carousel Image Management
-        Route::get('activities/{activityId}/images', [\App\Http\Controllers\Admin\ActivityCarouselController::class, 'index']);
-        Route::post('activities/{activityId}/images', [\App\Http\Controllers\Admin\ActivityCarouselController::class, 'store']);
-        Route::delete('activities/images/{id}', [\App\Http\Controllers\Admin\ActivityCarouselController::class, 'destroy']);
+            // Khawatir Management
+            Route::apiResource('khawatir/categories', \App\Http\Controllers\Admin\Khawatir\CategoryController::class);
+            Route::apiResource('khawatir/posts', \App\Http\Controllers\Admin\Khawatir\PostController::class);
+             Route::post('khawatir/posts/{post}/images', [App\Http\Controllers\Admin\Khawatir\PostImageController::class, 'store']);
+           Route::delete('khawatir/images/{image}', [App\Http\Controllers\Admin\Khawatir\PostImageController::class, 'destroy']);
+
     });
 });

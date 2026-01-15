@@ -12,6 +12,7 @@ class ReviewResource extends JsonResource
         return [
             'id'          => $this->id,
             'person_name' => $this->person_name,
+            'is_published' => (bool) $this->is_published,
             'activity' => [
                 'id'    => $this->activity->id,
                 'title' => $this->activity->title ?? null

@@ -27,10 +27,11 @@ class ReviewController extends Controller
             'data' => new ReviewResource($review)
         ], 201);
     }
-    public function index()
+public function index()
 {
     return ReviewResource::collection(
-        Review::where('is_published', true)
+        Review::with('activity') 
+            ->where('is_published', true)
             ->latest()
             ->get()
     );
