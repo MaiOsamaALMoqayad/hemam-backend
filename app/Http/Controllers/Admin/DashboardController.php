@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\{AnnualProgram, Project, Camp, Trainer, ContactMessage, TrainerApplication, ExpertConsultation, Statistics};
+use App\Models\{Activity, Project, Trainer, ContactMessage, TrainerApplication, ExpertConsultation, Statistics};
 
 class DashboardController extends Controller
 {
@@ -11,9 +11,8 @@ class DashboardController extends Controller
     {
         return response()->json([
             'stats' => [
-                'annual_programs' => AnnualProgram::count(),
+                'annual_programs' => Activity::count(),
                 'projects' => Project::count(),
-                'camps' => Camp::count(),
                 'trainers' => Trainer::count(),
                 'pending_contacts' => ContactMessage::where('is_read', false)->count(),
                 'pending_applications' => TrainerApplication::where('status', 'pending')->count(),
