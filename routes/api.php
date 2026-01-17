@@ -12,8 +12,7 @@ use App\Http\Controllers\Api\DonationController;
 use App\Http\Controllers\API\StatisticsController;
 use App\Http\Controllers\API\ConsultationController;
 use App\Http\Controllers\API\TrainerApplicationController;
-
-// استيراد متحكمات الأدمن لترتيب الكود
+use App\Http\Controllers\Api\NewsController as FrontNewsController;
 use App\Http\Controllers\Admin\{
     AuthController,
     DashboardController,
@@ -27,7 +26,8 @@ use App\Http\Controllers\Admin\{
     SettingController as AdminSettingController,
     ReviewController as AdminReviewController,
     ActivityCarouselController,
-    ActivityRequestController
+    ActivityRequestController,
+    NewsController as AdminNewsController
 };
 
 // ---------------------------
@@ -67,6 +67,9 @@ Route::prefix('v1')->group(function () {
         Route::get('/categories/{category}/posts', [\App\Http\Controllers\Api\Khawatir\PostController::class, 'index']);
         Route::get('/posts/{id}', [\App\Http\Controllers\Api\Khawatir\PostController::class, 'show']);
     });
+    // --- News  ---
+    Route::get('/news', [FrontNewsController::class, 'index']);
+    Route::get('/news/{id}', [FrontNewsController::class, 'show']);
 });
 
 
@@ -96,6 +99,8 @@ Route::prefix('admin')->group(function () {
             Route::put('/{contact}/mark-read', [ContactMessageController::class, 'markAsRead']);
             Route::delete('/{contact}', [ContactMessageController::class, 'destroy']);
         });
+
+        // Activity Requests Management
         Route::prefix('activity-requests')->group(function () {
             Route::get('/', [ActivityRequestController::class, 'index']);
             Route::get('/{id}', [ActivityRequestController::class, 'show']);
@@ -140,5 +145,13 @@ Route::prefix('admin')->group(function () {
         Route::apiResource('khawatir/posts', \App\Http\Controllers\Admin\Khawatir\PostController::class);
         Route::post('khawatir/posts/{post}/images', [App\Http\Controllers\Admin\Khawatir\PostImageController::class, 'store']);
         Route::delete('khawatir/images/{image}', [App\Http\Controllers\Admin\Khawatir\PostImageController::class, 'destroy']);
-    });
+
+        // News Management
+    Route::prefix('news')->group(function () {
+        Route::get('/', [AdminNewsController::class, 'index']);
+        Route::post('/', [AdminNewsController::class, 'store']);
+        Route::get('/{id}', [AdminNewsController::class, 'show']);
+        Route::put('/{id}', [AdminNewsController::class, 'update']);
+        Route::delete('/{id}', [AdminNewsController::class, 'destroy']);
+    });    });
 });
