@@ -66,10 +66,7 @@ class ContactStoreRequest extends FormRequest
         ]);
     }
 
-    /**
-     * Handle a failed validation attempt.
-     * 📌 هذا يضمن أن الرد دائمًا JSON في حال فشل الفورم.
-     */
+   
     protected function failedValidation(Validator $validator)
     {
         throw new HttpResponseException(response()->json([

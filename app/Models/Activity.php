@@ -79,6 +79,9 @@ public function reviews()
 {
     return $this->hasMany(ActivityImage::class);
 }
-
+    public function requests()
+    {
+        return $this->hasMany(ActivityRequest::class);
+    }
 
 }
