@@ -70,6 +70,9 @@ Route::prefix('v1')->group(function () {
     // --- News  ---
     Route::get('/news', [FrontNewsController::class, 'index']);
     Route::get('/news/{id}', [FrontNewsController::class, 'show']);
+
+    // --- Map Locations  ---
+    Route::get('/map-locations', [\App\Http\Controllers\Api\MapLocationController::class, 'index']);
 });
 
 
@@ -153,5 +156,8 @@ Route::prefix('admin')->group(function () {
         Route::get('/{id}', [AdminNewsController::class, 'show']);
         Route::put('/{id}', [AdminNewsController::class, 'update']);
         Route::delete('/{id}', [AdminNewsController::class, 'destroy']);
-    });    });
+    });
+    Route::apiResource('map-locations', \App\Http\Controllers\Admin\MapLocationController::class);
+    });
+
 });

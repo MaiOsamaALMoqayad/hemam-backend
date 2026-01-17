@@ -16,6 +16,7 @@ class DatabaseSeeder extends Seeder
             ProjectSeeder::class,
             TrainerSeeder::class,
             KhaterCategorySeeder::class,
+            MapLocationSeeder::class,
         ]);
 
         $this->command->info('✅ All seeders completed!');
