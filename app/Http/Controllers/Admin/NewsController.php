@@ -21,7 +21,7 @@ class NewsController extends Controller
             'image' => 'required|image',
             'description' => 'required|string',
             'button_text' => 'nullable|string|max:100',
-            'button_link' => 'nullable|url',
+            'button_link' => 'nullable|string|max:1000',
         ]);
 
         $data['image'] = $request->file('image')->store('news', 'public');
@@ -45,7 +45,7 @@ class NewsController extends Controller
             'image' => 'sometimes|image',
             'description' => 'sometimes|string',
             'button_text' => 'nullable|string|max:100',
-            'button_link' => 'nullable|url',
+            'button_link' => 'nullable|string|max:1000',
         ]);
 
         if ($request->hasFile('image')) {
