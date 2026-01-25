@@ -9,7 +9,7 @@ class NewsController extends Controller
     public function index()
     {
         return response()->json(
-            News::select('id', 'image')->latest()->get()
+            News::select('id', 'image','title')->latest()->get()
         );
     }
 
