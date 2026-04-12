@@ -8,11 +8,11 @@ use App\Http\Controllers\API\ProjectController;
 use App\Http\Controllers\API\SettingController;
 use App\Http\Controllers\API\TrainerController;
 use App\Http\Controllers\API\ActivityController;
-use App\Http\Controllers\Api\DonationController;
+use App\Http\Controllers\API\DonationController;
 use App\Http\Controllers\API\StatisticsController;
 use App\Http\Controllers\API\ConsultationController;
 use App\Http\Controllers\API\TrainerApplicationController;
-use App\Http\Controllers\Api\NewsController as FrontNewsController;
+use App\Http\Controllers\API\NewsController as FrontNewsController;
 use App\Http\Controllers\Admin\{
     AuthController,
     DashboardController,
@@ -52,7 +52,7 @@ Route::prefix('v1')->group(function () {
     Route::post('/trainer-applications', [TrainerApplicationController::class, 'store']);
     Route::post('/consultations', [ConsultationController::class, 'store']);
     Route::post('/donations', [DonationController::class, 'store']);
-    Route::post('/activities/requests', [\App\Http\Controllers\Api\ActivityRequestController::class, 'store']);
+    Route::post('/activities/requests', [\App\Http\Controllers\API\ActivityRequestController::class, 'store']);
 
 
 
@@ -63,16 +63,16 @@ Route::prefix('v1')->group(function () {
 
     // --- Khawatir  ---
     Route::prefix('khawatir')->group(function () {
-        Route::get('/categories', [\App\Http\Controllers\Api\Khawatir\CategoryController::class, 'index']);
-        Route::get('/categories/{category}/posts', [\App\Http\Controllers\Api\Khawatir\PostController::class, 'index']);
-        Route::get('/posts/{id}', [\App\Http\Controllers\Api\Khawatir\PostController::class, 'show']);
+        Route::get('/categories', [\App\Http\Controllers\API\Khawatir\CategoryController::class, 'index']);
+        Route::get('/categories/{category}/posts', [\App\Http\Controllers\API\Khawatir\PostController::class, 'index']);
+        Route::get('/posts/{id}', [\App\Http\Controllers\API\Khawatir\PostController::class, 'show']);
     });
     // --- News  ---
     Route::get('/news', [FrontNewsController::class, 'index']);
     Route::get('/news/{id}', [FrontNewsController::class, 'show']);
 
     // --- Map Locations  ---
-    Route::get('/map-locations', [\App\Http\Controllers\Api\MapLocationController::class, 'index']);
+    Route::get('/map-locations', [\App\Http\Controllers\API\MapLocationController::class, 'index']);
 });
 
 

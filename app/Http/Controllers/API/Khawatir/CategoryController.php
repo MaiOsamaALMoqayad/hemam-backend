@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Api\Khawatir;
+namespace App\Http\Controllers\API\Khawatir;
 
 use App\Models\KhaterCategory;
 use App\Http\Controllers\Controller;

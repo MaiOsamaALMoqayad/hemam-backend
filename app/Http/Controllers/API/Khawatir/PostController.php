@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Api\Khawatir;
+namespace App\Http\Controllers\API\Khawatir;
 
 use App\Http\Controllers\Controller;
 use App\Models\KhaterPost;
@@ -12,7 +12,7 @@ class PostController extends Controller
     {
         $posts = KhaterPost::where('khater_category_id', $categoryId)
             ->where('is_published', true)
-            ->with('images') 
+            ->with('images')
             ->latest()
             ->get();
 
