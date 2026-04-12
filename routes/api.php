@@ -1,34 +1,22 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Admin\{AuthController, DashboardController, ActivityController as AdminActivityController, ProjectController as AdminProjectController, TrainerController as AdminTrainerController, ContactMessageController, TrainerApplicationController as AdminTrainerApplicationController, ConsultationController as AdminConsultationController, StatisticsController as AdminStatisticsController, SettingController as AdminSettingController, ReviewController as AdminReviewController, ActivityCarouselController, ActivityRequestController, NewsController as AdminNewsController};
+
+use App\Http\Controllers\API\CompanyReviewController as PublicReviewController;
+use App\Http\Controllers\Admin\CompanyReviewController as AdminCompanyReviewController;
+use App\Http\Controllers\API\ActivityController;
+use App\Http\Controllers\API\ConsultationController;
+use App\Http\Controllers\API\ContactController;
+use App\Http\Controllers\API\DonationController;
+use App\Http\Controllers\API\NewsController as FrontNewsController;
+use App\Http\Controllers\API\ProjectController;
 use App\Http\Controllers\API\ReviewController;
 use App\Http\Controllers\API\SearchController;
-use App\Http\Controllers\API\ContactController;
-use App\Http\Controllers\API\ProjectController;
 use App\Http\Controllers\API\SettingController;
-use App\Http\Controllers\API\TrainerController;
-use App\Http\Controllers\API\ActivityController;
-use App\Http\Controllers\API\DonationController;
 use App\Http\Controllers\API\StatisticsController;
-use App\Http\Controllers\API\ConsultationController;
 use App\Http\Controllers\API\TrainerApplicationController;
-use App\Http\Controllers\API\NewsController as FrontNewsController;
-use App\Http\Controllers\Admin\{
-    AuthController,
-    DashboardController,
-    ActivityController as AdminActivityController,
-    ProjectController as AdminProjectController,
-    TrainerController as AdminTrainerController,
-    ContactMessageController,
-    TrainerApplicationController as AdminTrainerApplicationController,
-    ConsultationController as AdminConsultationController,
-    StatisticsController as AdminStatisticsController,
-    SettingController as AdminSettingController,
-    ReviewController as AdminReviewController,
-    ActivityCarouselController,
-    ActivityRequestController,
-    NewsController as AdminNewsController
-};
+use App\Http\Controllers\API\TrainerController;
+use Illuminate\Support\Facades\Route;
 
 // ---------------------------
 // API Version 1
@@ -73,6 +61,10 @@ Route::prefix('v1')->group(function () {
 
     // --- Map Locations  ---
     Route::get('/map-locations', [\App\Http\Controllers\API\MapLocationController::class, 'index']);
+
+    //تعليقات عامة
+    Route::post('/company-reviews', [PublicReviewController::class, 'store']);
+    Route::get('/company-reviews', [PublicReviewController::class, 'index']);
 });
 
 
@@ -138,6 +130,11 @@ Route::prefix('admin')->group(function () {
             Route::delete('/{id}', [AdminReviewController::class, 'destroy']);
         });
 
+        Route::get('company-reviews', [AdminCompanyReviewController::class, 'index']);
+        Route::put('company-reviews/{id}/approve', [AdminCompanyReviewController::class, 'approve']);
+        Route::delete('company-reviews/{id}', [AdminCompanyReviewController::class, 'destroy']);
+
+
         // Images Management
         Route::get('activities/{activityId}/images', [ActivityCarouselController::class, 'index']);
         Route::post('activities/{activityId}/images', [ActivityCarouselController::class, 'store']);
@@ -150,14 +147,13 @@ Route::prefix('admin')->group(function () {
         Route::delete('khawatir/images/{image}', [App\Http\Controllers\Admin\Khawatir\PostImageController::class, 'destroy']);
 
         // News Management
-    Route::prefix('news')->group(function () {
-        Route::get('/', [AdminNewsController::class, 'index']);
-        Route::post('/', [AdminNewsController::class, 'store']);
-        Route::get('/{id}', [AdminNewsController::class, 'show']);
-        Route::put('/{id}', [AdminNewsController::class, 'update']);
-        Route::delete('/{id}', [AdminNewsController::class, 'destroy']);
+        Route::prefix('news')->group(function () {
+            Route::get('/', [AdminNewsController::class, 'index']);
+            Route::post('/', [AdminNewsController::class, 'store']);
+            Route::get('/{id}', [AdminNewsController::class, 'show']);
+            Route::put('/{id}', [AdminNewsController::class, 'update']);
+            Route::delete('/{id}', [AdminNewsController::class, 'destroy']);
+        });
+        Route::apiResource('map-locations', \App\Http\Controllers\Admin\MapLocationController::class);
     });
-    Route::apiResource('map-locations', \App\Http\Controllers\Admin\MapLocationController::class);
-    });
-
 });
