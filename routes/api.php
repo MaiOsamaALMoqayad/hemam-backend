@@ -1,10 +1,10 @@
 <?php
 
 use App\Http\Controllers\Admin\{AuthController, DashboardController, ActivityController as AdminActivityController, ProjectController as AdminProjectController, TrainerController as AdminTrainerController, ContactMessageController, TrainerApplicationController as AdminTrainerApplicationController, ConsultationController as AdminConsultationController, StatisticsController as AdminStatisticsController, SettingController as AdminSettingController, ReviewController as AdminReviewController, ActivityCarouselController, ActivityRequestController, NewsController as AdminNewsController};
-
-use App\Http\Controllers\API\CompanyReviewController as PublicReviewController;
 use App\Http\Controllers\Admin\CompanyReviewController as AdminCompanyReviewController;
+use App\Http\Controllers\Admin\MapLocationController;
 use App\Http\Controllers\API\ActivityController;
+use App\Http\Controllers\API\CompanyReviewController as PublicReviewController;
 use App\Http\Controllers\API\ConsultationController;
 use App\Http\Controllers\API\ContactController;
 use App\Http\Controllers\API\DonationController;
@@ -155,5 +155,6 @@ Route::prefix('admin')->group(function () {
             Route::delete('/{id}', [AdminNewsController::class, 'destroy']);
         });
         Route::apiResource('map-locations', \App\Http\Controllers\Admin\MapLocationController::class);
-    });
+Route::delete('map-locations/images/{id}', [MapLocationController::class, 'deleteImage']);
+        });
 });

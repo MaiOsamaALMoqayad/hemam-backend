@@ -16,5 +16,11 @@ class MapLocation extends Model
         'longitude',
         'description',
     ];
+    
+    public function images()
+{
+    return $this->hasMany(MapLocationImage::class);
+}
+
 }
 
