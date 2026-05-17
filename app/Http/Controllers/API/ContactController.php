@@ -52,8 +52,8 @@ class ContactController extends Controller
             // إرسال إشعار للأدمن عبر Email
             try {
                 Log::info('Starting to send email...');
-                Notification::route('mail', env('ADMIN_EMAIL'))
-                    ->notify(new \App\Notifications\NewContactMessageNotification($contact));
+               Notification::route('mail', config('mail.admin_email'))
+    ->notify(new \App\Notifications\NewContactMessageNotification($contact));
 
                 Log::info('Email sent successfully!');
             } catch (\Exception $e) {

@@ -13,8 +13,8 @@ class DonationController extends Controller
     public function store(DonationRequest $request)
     {
         $donation = Donation::create($request->validated());
-     Notification::route('mail', env('ADMIN_EMAIL'))
-                    ->notify(new \App\Notifications\NewDonationNotification($donation));
+   Notification::route('mail', config('mail.admin_email'))
+      ->notify(new \App\Notifications\NewDonationNotification($donation));
         return response()->json([
             'message' => 'تم إرسال التبرع بنجاح',
             'data' => $donation

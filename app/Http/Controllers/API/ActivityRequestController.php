@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Controllers\API;
 
 use App\Models\ActivityRequest;
@@ -52,7 +53,7 @@ class ActivityRequestController extends Controller
             try {
                 Log::info('Starting to send activity request email...');
                 $item->load('activity');
-                Notification::route('mail', env('ADMIN_EMAIL'))
+                Notification::route('mail', config('mail.admin_email'))
                     ->notify(new \App\Notifications\NewActivityRequestNotification($item));
                 Log::info('Activity request email sent!');
             } catch (\Exception $e) {
@@ -69,7 +70,6 @@ class ActivityRequestController extends Controller
                 'success' => true,
                 'message' => 'تم إرسال طلب الانضمام بنجاح',
             ], 201);
-
         } catch (\Throwable $e) {
             Log::error('Activity Request Error: ' . $e->getMessage());
 

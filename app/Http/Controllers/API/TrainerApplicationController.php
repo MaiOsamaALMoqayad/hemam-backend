@@ -75,8 +75,8 @@ class TrainerApplicationController extends Controller
 
                   try {
                 $adminEmail = env('ADMIN_EMAIL', 'admin@hemam.com');
-                Notification::route('mail', $adminEmail)
-                    ->notify(new NewTrainerApplicationNotification($application));
+         Notification::route('mail', config('mail.admin_email'))
+    ->notify(new NewTrainerApplicationNotification($application));
 
                 Log::info('Trainer application email sent successfully to: ' . $adminEmail);
             } catch (\Exception $e) {
