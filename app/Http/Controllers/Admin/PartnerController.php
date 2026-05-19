@@ -40,7 +40,7 @@ class PartnerController extends Controller
             'image'       => 'partners/' . $filename,
             'order_index' => $validated['order_index'] ?? 0,
         ]);
- 
+        
         return response()->json([
             'success' => true,
             'message' => 'تم إضافة الصورة بنجاح.',

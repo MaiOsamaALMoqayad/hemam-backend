@@ -68,7 +68,11 @@ Route::prefix('v1')->group(function () {
 
     // Partners
     Route::get('/partners', [\App\Http\Controllers\API\PartnerController::class, 'index']);
+
+    // Video
+    Route::get('/video', [\App\Http\Controllers\API\VideoController::class, 'show']);
 });
+
 
 
 // ---------------------------
@@ -165,4 +169,9 @@ Route::prefix('admin')->group(function () {
      Route::get('/partners', [\App\Http\Controllers\Admin\PartnerController::class, 'index']);
     Route::post('/partners', [\App\Http\Controllers\Admin\PartnerController::class, 'store']);
     Route::delete('/partners/{id}', [\App\Http\Controllers\Admin\PartnerController::class, 'destroy']);
+
+        // --- Video Management ---
+        Route::get('/video', [\App\Http\Controllers\Admin\VideoController::class, 'index']);
+        Route::post('/video', [\App\Http\Controllers\Admin\VideoController::class, 'store']);
+        Route::delete('/video', [\App\Http\Controllers\Admin\VideoController::class, 'destroy']);
 });
