@@ -65,6 +65,9 @@ Route::prefix('v1')->group(function () {
     //تعليقات عامة
     Route::post('/company-reviews', [PublicReviewController::class, 'store']);
     Route::get('/company-reviews', [PublicReviewController::class, 'index']);
+
+    // Partners
+    Route::get('/partners', [\App\Http\Controllers\API\PartnerController::class, 'index']);
 });
 
 
@@ -155,6 +158,11 @@ Route::prefix('admin')->group(function () {
             Route::delete('/{id}', [AdminNewsController::class, 'destroy']);
         });
         Route::apiResource('map-locations', \App\Http\Controllers\Admin\MapLocationController::class);
-Route::delete('map-locations/images/{id}', [MapLocationController::class, 'deleteImage']);
-        });
+        Route::delete('map-locations/images/{id}', [MapLocationController::class, 'deleteImage']);
+    });
+
+    // --- Partners Management ---
+     Route::get('/partners', [\App\Http\Controllers\Admin\PartnerController::class, 'index']);
+    Route::post('/partners', [\App\Http\Controllers\Admin\PartnerController::class, 'store']);
+    Route::delete('/partners/{id}', [\App\Http\Controllers\Admin\PartnerController::class, 'destroy']);
 });
