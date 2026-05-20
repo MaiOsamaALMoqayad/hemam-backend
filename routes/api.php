@@ -127,8 +127,13 @@ Route::prefix('admin')->group(function () {
             Route::delete('/{consultation}', [AdminConsultationController::class, 'destroy']);
         });
 
+// Statistics Management
+        Route::get('statistics/icons', [AdminStatisticsController::class, 'getAvailableIcons']);
         Route::get('statistics', [AdminStatisticsController::class, 'index']);
-        Route::put('statistics', [AdminStatisticsController::class, 'update']);
+        Route::post('statistics', [AdminStatisticsController::class, 'store']);
+        Route::put('statistics/{id}', [AdminStatisticsController::class, 'update']);
+        Route::delete('statistics/{id}', [AdminStatisticsController::class, 'destroy']);
+
 
         Route::get('settings', [AdminSettingController::class, 'index']);
         Route::put('settings', [AdminSettingController::class, 'update']);
@@ -181,6 +186,6 @@ Route::prefix('admin')->group(function () {
         Route::get('/goals', [\App\Http\Controllers\Admin\GoalController::class, 'index']);
         Route::post('/goals', [\App\Http\Controllers\Admin\GoalController::class, 'store']);
         Route::put('/goals/{id}', [\App\Http\Controllers\Admin\GoalController::class, 'update']);
-        Route::delete('/goals/{id}', [\App\Http\Controllers\Admin\GoalController::class, 'destroy']);   
+        Route::delete('/goals/{id}', [\App\Http\Controllers\Admin\GoalController::class, 'destroy']);
 });
 

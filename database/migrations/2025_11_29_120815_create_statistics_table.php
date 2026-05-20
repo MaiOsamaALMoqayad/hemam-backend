@@ -11,23 +11,18 @@ return new class extends Migration
      */
     public function up(): void
     {
+        Schema::dropIfExists('statistics');
+
         Schema::create('statistics', function (Blueprint $table) {
             $table->id();
-            $table->unsignedInteger('beneficiaries_count')->default(0);
-            $table->unsignedInteger('institutions_count')->default(0);
-            $table->unsignedInteger('trainings_count')->default(0);
-            $table->unsignedInteger('consultations_count')->default(0);
-            $table->timestamp('updated_at')->useCurrent();
-
-            // Indexes للأداء
-            $table->index('beneficiaries_count');
-            $table->index('institutions_count');
+            $table->string('title');
+            $table->string('count');
+            $table->string('icon_name');
+            $table->timestamps();
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
+
     public function down(): void
     {
         Schema::dropIfExists('statistics');
