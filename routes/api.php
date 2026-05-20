@@ -71,6 +71,8 @@ Route::prefix('v1')->group(function () {
 
     // Video
     Route::get('/video', [\App\Http\Controllers\API\VideoController::class, 'show']);
+    // --- Goals ---
+    Route::get('/goals', [\App\Http\Controllers\API\GoalController::class, 'index']);
 });
 
 
@@ -174,4 +176,11 @@ Route::prefix('admin')->group(function () {
         Route::get('/video', [\App\Http\Controllers\Admin\VideoController::class, 'index']);
         Route::post('/video', [\App\Http\Controllers\Admin\VideoController::class, 'store']);
         Route::delete('/video', [\App\Http\Controllers\Admin\VideoController::class, 'destroy']);
+
+        // --- Goals Management ---
+        Route::get('/goals', [\App\Http\Controllers\Admin\GoalController::class, 'index']);
+        Route::post('/goals', [\App\Http\Controllers\Admin\GoalController::class, 'store']);
+        Route::put('/goals/{id}', [\App\Http\Controllers\Admin\GoalController::class, 'update']);
+        Route::delete('/goals/{id}', [\App\Http\Controllers\Admin\GoalController::class, 'destroy']);   
 });
+
