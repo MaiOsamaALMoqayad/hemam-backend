@@ -170,7 +170,7 @@ Route::prefix('admin')->group(function () {
         });
         Route::apiResource('map-locations', \App\Http\Controllers\Admin\MapLocationController::class);
         Route::delete('map-locations/images/{id}', [MapLocationController::class, 'deleteImage']);
-    });
+
 
     // --- Partners Management ---
      Route::get('/partners', [\App\Http\Controllers\Admin\PartnerController::class, 'index']);
@@ -189,3 +189,4 @@ Route::prefix('admin')->group(function () {
         Route::delete('/goals/{id}', [\App\Http\Controllers\Admin\GoalController::class, 'destroy']);
 });
 
+});

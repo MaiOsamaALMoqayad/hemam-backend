@@ -45,8 +45,7 @@ class StatisticsController extends Controller
      */
     public function index()
     {
-        $statistics = Statistics::all();
-
+$statistics = Statistics::query()->latest()->get();
         return response()->json([
             'success' => true,
             'data'    => $statistics
@@ -129,7 +128,7 @@ class StatisticsController extends Controller
         ], 200);
     }
 
-  
+
     public function destroy($id)
     {
         $statistic = Statistics::find($id);
