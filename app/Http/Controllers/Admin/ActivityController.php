@@ -56,6 +56,7 @@ class ActivityController extends Controller
             'capacity' => 'nullable|string',
             'season' => 'nullable|string',
             'history' => 'nullable|array',
+            'form_url' => 'nullable|string|url',
         ]);
         $data['history'] = $data['history'] ?? [];
 
@@ -84,6 +85,7 @@ class ActivityController extends Controller
             'application_deadline' => $data['application_deadline'] ?? '',
             'duration' => $data['duration'] ?? '',
             'capacity' => $data['capacity'] ?? '',
+            'form_url' => $data['form_url'] ?? '',
         ]);
 
         if ($request->has('history')) {
@@ -111,6 +113,7 @@ class ActivityController extends Controller
                 'duration' => 'sometimes|string',
                 'capacity' => 'sometimes|string',
                 'history' => 'sometimes|array',
+                'form_url' => 'sometimes|nullable|string|url',
             ]);
 
             // تحديث العنوان
@@ -143,6 +146,7 @@ class ActivityController extends Controller
                 'application_deadline' => $data['application_deadline'] ?? $activity->application_deadline,
                 'duration' => $data['duration'] ?? $activity->duration,
                 'capacity' => $data['capacity'] ?? $activity->capacity,
+                'form_url' => $request->has('form_url') ? $data['form_url'] : $activity->form_url, 
             ]);
 
             if ($request->has('history')) {

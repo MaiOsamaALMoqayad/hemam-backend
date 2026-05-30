@@ -23,6 +23,7 @@ class ActivitySummaryResource extends JsonResource
             'image' => $this->image ? asset('storage/' . $this->image) : null,
             'is_open' => $this->is_open,
             'season' => $this->season,
+            'formUrl'=>$this->form_url
         ];
     }
 }

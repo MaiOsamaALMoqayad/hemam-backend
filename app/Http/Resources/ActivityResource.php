@@ -31,6 +31,7 @@ class ActivityResource extends JsonResource
             'applicationDeadline' => $this->application_deadline,
             'duration' => $this->duration,
             'capacity' => $this->capacity,
+            'formUrl' => $this->form_url,
             'history' => $this->histories->map(function ($h) {
                 return [
                     'id' => $h->id,

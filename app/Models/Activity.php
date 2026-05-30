@@ -16,12 +16,15 @@ class Activity extends Model
         'application_deadline',
         'duration',
         'capacity',
+        'form_url',             // جديد: رابط الفورم
+
     ];
 
     protected $casts = [
         'title' => 'array',
         'description' => 'array',
         'is_active' => 'boolean',
+        'is_open' => 'boolean',
     ];
 
     /**
