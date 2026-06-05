@@ -7,9 +7,11 @@ use App\Http\Controllers\Controller;
 
 class MapLocationController extends Controller
 {
-    public function index()
-    {
-        return response()->json(MapLocation::all());
-    }
+   public function index()
+{
+    return response()->json(
+        MapLocation::with('images')->get()
+    );
+}
 }
 

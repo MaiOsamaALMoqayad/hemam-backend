@@ -4,9 +4,6 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-namespace App\Models;
-
-use Illuminate\Database\Eloquent\Model;
 
 class MapLocation extends Model
 {
@@ -16,7 +13,7 @@ class MapLocation extends Model
         'longitude',
         'description',
     ];
-    
+
     public function images()
 {
     return $this->hasMany(MapLocationImage::class);
