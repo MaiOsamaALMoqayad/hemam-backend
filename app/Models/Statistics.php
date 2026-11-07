@@ -12,5 +12,11 @@ class Statistics extends Model
         'title',
         'count',
         'icon_name',
+        'order_index',
     ];
+
+    public function scopeOrdered($query)
+    {
+        return $query->orderBy('order_index')->orderBy('id');
+    }
 }

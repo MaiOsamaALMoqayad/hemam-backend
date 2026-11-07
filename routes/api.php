@@ -178,6 +178,7 @@ Route::prefix('admin')->group(function () {
     // --- Partners Management ---
      Route::get('/partners', [\App\Http\Controllers\Admin\PartnerController::class, 'index']);
     Route::post('/partners', [\App\Http\Controllers\Admin\PartnerController::class, 'store']);
+    Route::post('/partners/{id}', [\App\Http\Controllers\Admin\PartnerController::class, 'update']);
     Route::delete('/partners/{id}', [\App\Http\Controllers\Admin\PartnerController::class, 'destroy']);
 
         // --- Video Management ---
@@ -194,6 +195,8 @@ Route::prefix('admin')->group(function () {
         // --- Page content (in-place editing) ---
         Route::put('/content', [\App\Http\Controllers\Admin\PageContentController::class, 'update']);
         Route::post('/content/image', [\App\Http\Controllers\Admin\PageContentController::class, 'uploadImage']);
+        // Card order (in-place editing): statistics, partners, trainers
+        Route::post('/reorder/{resource}', \App\Http\Controllers\Admin\ReorderController::class);
 });
 
 });

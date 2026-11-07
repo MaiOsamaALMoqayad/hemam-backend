@@ -51,6 +51,7 @@ class PageContent extends Model
         foreach (self::rows() as $key => $row) {
             $values[$key] = match ($row['type']) {
                 'link'  => json_decode($row['value'], true) ?: ['label' => '', 'url' => ''],
+                'list'  => json_decode($row['value'], true) ?: [],
                 'image' => asset('storage/' . $row['value']),
                 default => $row['value'],
             };

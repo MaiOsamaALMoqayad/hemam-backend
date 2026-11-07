@@ -13,20 +13,8 @@ class StatisticsController extends Controller
 {
     private function getIconsList()
     {
-        return [
-            'Users',
-            'Building2',
-            'GraduationCap',
-            'MessageSquare',
-            'Briefcase',
-            'Trophy',
-            'Heart',
-            'Calendar',
-            'Lightbulb',
-            'Target',
-            'Award',
-            'BookOpen'
-        ];
+        // Shared with the homepage goal cards (config/page_content.php).
+        return config('page_content.icons');
     }
 
     /**
@@ -45,7 +33,7 @@ class StatisticsController extends Controller
      */
     public function index()
     {
-$statistics = Statistics::query()->latest()->get();
+        $statistics = Statistics::query()->ordered()->get();
         return response()->json([
             'success' => true,
             'data'    => $statistics
@@ -81,7 +69,13 @@ $statistics = Statistics::query()->latest()->get();
             ], 422);
         }
 
-        $statistic = Statistics::create($request->all());
+        $statistic = Statistics::create([
+            'title'       => $request->input('title'),
+            'count'       => $request->input('count'),
+            'icon_name'   => $request->input('icon_name'),
+            // New statistics go last.
+            'order_index' => (int) Statistics::max('order_index') + 1,
+        ]);
 
         return response()->json([
             'success' => true,

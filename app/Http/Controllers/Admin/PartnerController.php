@@ -38,7 +38,8 @@ class PartnerController extends Controller
         $partner = Partner::create([
             'name'        => $validated['name'] ?? null,
             'image'       => 'partners/' . $filename,
-            'order_index' => $validated['order_index'] ?? 0,
+            // New partners go last unless an order is given.
+            'order_index' => $validated['order_index'] ?? ((int) Partner::max('order_index') + 1),
         ]);
         
         return response()->json([
@@ -48,6 +49,48 @@ class PartnerController extends Controller
         ], 201);
     }
 
+
+    /**
+     * POST /admin/partners/{id} — multipart {name?, image?}. POST rather
+     * than PUT because PHP doesn't parse multipart bodies on PUT.
+     */
+    public function update(Request $request, $id)
+    {
+        $partner = Partner::find($id);
+
+        if (!$partner) {
+            return response()->json([
+                'success' => false,
+                'message' => 'الشريك غير موجود.'
+            ], 404);
+        }
+
+        $validated = $request->validate([
+            'name'  => 'nullable|string|max:150',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
+        ]);
+
+        $data = ['name' => $validated['name'] ?? null];
+
+        if ($request->hasFile('image')) {
+            $image = Image::read($request->file('image'))->cover(400, 400);
+            $path = 'partners/' . uniqid() . '.jpg';
+            Storage::disk('public')->put($path, (string) $image->toJpeg(quality: 85));
+
+            if ($partner->image && Storage::disk('public')->exists($partner->image)) {
+                Storage::disk('public')->delete($partner->image);
+            }
+            $data['image'] = $path;
+        }
+
+        $partner->update($data);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'تم تحديث الشريك بنجاح.',
+            'data'    => new PartnerResource($partner)
+        ], 200);
+    }
 
     public function destroy($id)
     {

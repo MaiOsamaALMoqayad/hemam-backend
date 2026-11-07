@@ -21,6 +21,7 @@ class PageContentController extends Controller
      *   link:  value is {"label": "...", "url": "..."}.
      *   image: only "" is accepted here (restore the default image);
      *          uploading goes through uploadImage().
+     *   list:  value is the whole card list, [{"id": "...", ...fields}].
      * An empty value ("" or a link with nothing in it) deletes the row, so
      * the site falls back to its built-in default.
      */
@@ -174,6 +175,59 @@ class PageContentController extends Controller
                 }
 
                 return json_encode(['label' => $label, 'url' => $url], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+
+            case 'list':
+                if ($value === null || $value === '') {
+                    return null;
+                }
+                if (!is_array($value) || !array_is_list($value)) {
+                    $this->fail($field, 'قائمة البطاقات غير صحيحة.');
+                }
+                $maxItems = $def['max_items'] ?? 20;
+                if (count($value) > $maxItems) {
+                    $this->fail($field, "الحد الأقصى $maxItems بطاقة.");
+                }
+
+                $icons = config('page_content.icons', []);
+                $items = [];
+                foreach ($value as $n => $item) {
+                    if (!is_array($item)) {
+                        $this->fail($field, 'قائمة البطاقات غير صحيحة.');
+                    }
+                    $id = (string) ($item['id'] ?? '');
+                    $clean = ['id' => preg_match('/^[A-Za-z0-9_-]{1,40}$/', $id) ? $id : bin2hex(random_bytes(6))];
+
+                    foreach ($def['fields'] as $name => $rules) {
+                        $raw = $item[$name] ?? '';
+                        if (!is_string($raw)) {
+                            $this->fail($field, 'قائمة البطاقات غير صحيحة.');
+                        }
+                        $card = $n + 1;
+
+                        if (!empty($rules['icon'])) {
+                            if ($raw !== '' && !in_array($raw, $icons, true)) {
+                                $this->fail($field, "أيقونة غير معروفة في البطاقة $card.");
+                            }
+                            $clean[$name] = $raw;
+                            continue;
+                        }
+
+                        $text = $this->cleanText($raw);
+                        if (!empty($rules['required']) && $text === '') {
+                            $this->fail($field, "العنوان مطلوب في البطاقة $card.");
+                        }
+                        $max = $rules['max'] ?? 300;
+                        if (mb_strlen($text) > $max) {
+                            $this->fail($field, "النص أطول من الحد المسموح ($max حرفاً) في البطاقة $card.");
+                        }
+                        $clean[$name] = $text;
+                    }
+                    $items[] = $clean;
+                }
+
+                // An empty list is kept on purpose: it hides the section
+                // instead of bringing the built-in cards back.
+                return json_encode($items, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 
             default: // text
                 if ($value !== null && !is_string($value)) {

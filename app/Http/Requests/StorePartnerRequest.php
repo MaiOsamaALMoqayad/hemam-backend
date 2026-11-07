@@ -23,7 +23,8 @@ class StorePartnerRequest extends FormRequest
     {
         return [
             'name' => 'nullable|string|max:150',
-            'image' => 'required|image|mimes:jpeg,png,jpg,webp,svg|max:2048',
+            // No SVG: Intervention Image can't read it (the upload used to 500).
+            'image' => 'required|image|mimes:jpeg,png,jpg,webp|max:2048',
             'order_index' => 'nullable|integer',
         ];
     }

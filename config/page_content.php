@@ -15,6 +15,11 @@
 |          icon-only links (social icons), where only the URL is kept.
 |   image  uploaded through POST /admin/content/image only. 'width' = the
 |          largest width kept (bigger uploads are scaled down).
+|   list   an ordered list of cards, saved as a whole. 'fields' describes
+|          each card: ['max' => length, 'required' => bool] for text, or
+|          'icon' => true for a name from 'icons' below. 'max_items' caps
+|          the list. An empty list is kept (it hides the section); ""
+|          restores the frontend's built-in cards.
 |
 */
 
@@ -55,6 +60,15 @@ return [
 
         'home.news.title'         => $text(100),
         'home.goals.title'        => $text(100),
+        'home.goals.cards'        => [
+            'type'      => 'list',
+            'max_items' => 12,
+            'fields'    => [
+                'icon'        => ['icon' => true],
+                'title'       => ['max' => 80, 'required' => true],
+                'description' => ['max' => 300],
+            ],
+        ],
         'home.achievements.title' => $text(100),
         'home.trainers.title'     => $text(100),
         'home.partners.title'     => $text(100),
@@ -80,5 +94,12 @@ return [
         'footer.social.facebook'  => $icon,
         'footer.social.instagram' => $icon,
         'footer.social.youtube'   => $icon,
+    ],
+
+    // Icon names (lucide-react) offered for cards: the homepage goal cards
+    // and the statistics. The frontend maps each name to its component.
+    'icons' => [
+        'Users', 'Building2', 'GraduationCap', 'MessageSquare', 'Briefcase', 'Trophy',
+        'Heart', 'Calendar', 'Lightbulb', 'Target', 'Award', 'BookOpen',
     ],
 ];

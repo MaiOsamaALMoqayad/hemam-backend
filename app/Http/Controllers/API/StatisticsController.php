@@ -12,7 +12,7 @@ class StatisticsController extends Controller
 
    public function index()
     {
-        $statistics = Statistics::latest()->take(4)->get();
+        $statistics = Statistics::ordered()->take(4)->get();
 
         return response()->json([
             'success' => true,
