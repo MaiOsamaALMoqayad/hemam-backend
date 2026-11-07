@@ -4,6 +4,8 @@ namespace Tests\Feature;
 
 use App\Models\PageContent;
 use App\Models\User;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 
@@ -91,5 +93,97 @@ class PageContentTest extends TestCase
         ])->assertStatus(422)->assertJsonValidationErrors('contents.0.value');
 
         $this->assertDatabaseCount('page_contents', 0);
+    }
+
+    public function test_links_are_validated_and_returned_as_objects(): void
+    {
+        Sanctum::actingAs(User::factory()->create());
+
+        $this->putJson('/api/admin/content', [
+            'contents' => [
+                ['key' => 'home.hero.cta_primary', 'value' => ['label' => '<i>برامجنا</i>', 'url' => '/programs']],
+                ['key' => 'footer.social.facebook', 'value' => ['label' => 'ignored', 'url' => 'https://facebook.com/x']],
+            ],
+        ])->assertOk()
+            ->assertJsonPath('data', [
+                'footer.social.facebook' => ['label' => '', 'url' => 'https://facebook.com/x'],
+                'home.hero.cta_primary'  => ['label' => 'برامجنا', 'url' => '/programs'],
+            ]);
+
+        foreach (['javascript:alert(1)', '//evil.com', 'evil.com', 'https://a b'] as $url) {
+            $this->putJson('/api/admin/content', [
+                'contents' => [['key' => 'home.hero.cta_primary', 'value' => ['label' => 'x', 'url' => $url]]],
+            ])->assertStatus(422)->assertJsonValidationErrors('contents.0.value');
+        }
+
+        // A labelled link needs its label; an empty link restores the default.
+        $this->putJson('/api/admin/content', [
+            'contents' => [['key' => 'home.hero.cta_primary', 'value' => ['label' => '', 'url' => '/x']]],
+        ])->assertStatus(422);
+
+        $this->putJson('/api/admin/content', [
+            'contents' => [['key' => 'home.hero.cta_primary', 'value' => ['label' => '', 'url' => '']]],
+        ])->assertOk();
+        $this->assertDatabaseMissing('page_contents', ['key' => 'home.hero.cta_primary']);
+
+        // Text keys don't take objects, image keys don't take values here.
+        $this->putJson('/api/admin/content', [
+            'contents' => [['key' => 'home.hero.title', 'value' => ['label' => 'x']]],
+        ])->assertStatus(422);
+        $this->putJson('/api/admin/content', [
+            'contents' => [['key' => 'site.logo', 'value' => 'page-content/x.png']],
+        ])->assertStatus(422);
+    }
+
+    public function test_image_upload_replaces_and_restores(): void
+    {
+        if (!extension_loaded('gd') && !extension_loaded('imagick')) {
+            $this->markTestSkipped('Needs gd or imagick for Intervention Image.');
+        }
+
+        Storage::fake('public');
+        Sanctum::actingAs(User::factory()->create());
+
+        $first = $this->post('/api/admin/content/image', [
+            'key'   => 'site.logo',
+            'image' => UploadedFile::fake()->image('logo.png', 800, 400),
+        ], ['Accept' => 'application/json'])->assertOk();
+
+        $firstPath = PageContent::where('key', 'site.logo')->value('value');
+        $this->assertStringEndsWith('.png', $firstPath);
+        Storage::disk('public')->assertExists($firstPath);
+        [$width] = getimagesizefromstring(Storage::disk('public')->get($firstPath));
+        $this->assertSame(400, $width); // scaled down to the key's width
+        $this->assertStringEndsWith($firstPath, $first->json('data.url'));
+
+        $this->post('/api/admin/content/image', [
+            'key'   => 'site.logo',
+            'image' => UploadedFile::fake()->image('logo.jpg', 200, 100),
+        ], ['Accept' => 'application/json'])->assertOk();
+
+        $secondPath = PageContent::where('key', 'site.logo')->value('value');
+        Storage::disk('public')->assertMissing($firstPath);
+        Storage::disk('public')->assertExists($secondPath);
+
+        $this->putJson('/api/admin/content', [
+            'contents' => [['key' => 'site.logo', 'value' => '']],
+        ])->assertOk();
+        Storage::disk('public')->assertMissing($secondPath);
+        $this->assertDatabaseCount('page_contents', 0);
+    }
+
+    public function test_image_upload_rejects_non_image_keys_and_guests(): void
+    {
+        $this->post('/api/admin/content/image', [], ['Accept' => 'application/json'])
+            ->assertUnauthorized();
+
+        Sanctum::actingAs(User::factory()->create());
+
+        $this->post('/api/admin/content/image', [
+            'key'   => 'home.hero.title',
+            'image' => UploadedFile::fake()->create('x.svg', 10, 'image/svg+xml'),
+        ], ['Accept' => 'application/json'])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors(['key', 'image']);
     }
 }

@@ -193,6 +193,7 @@ Route::prefix('admin')->group(function () {
 
         // --- Page content (in-place editing) ---
         Route::put('/content', [\App\Http\Controllers\Admin\PageContentController::class, 'update']);
+        Route::post('/content/image', [\App\Http\Controllers\Admin\PageContentController::class, 'uploadImage']);
 });
 
 });
