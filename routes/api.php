@@ -73,6 +73,9 @@ Route::prefix('v1')->group(function () {
     Route::get('/video', [\App\Http\Controllers\API\VideoController::class, 'show']);
     // --- Goals ---
     Route::get('/goals', [\App\Http\Controllers\API\GoalController::class, 'index']);
+
+    // Editable page content (in-place editing on the public site)
+    Route::get('/content', [\App\Http\Controllers\API\PageContentController::class, 'index']);
 });
 
 
@@ -187,6 +190,9 @@ Route::prefix('admin')->group(function () {
         Route::post('/goals', [\App\Http\Controllers\Admin\GoalController::class, 'store']);
         Route::put('/goals/{id}', [\App\Http\Controllers\Admin\GoalController::class, 'update']);
         Route::delete('/goals/{id}', [\App\Http\Controllers\Admin\GoalController::class, 'destroy']);
+
+        // --- Page content (in-place editing) ---
+        Route::put('/content', [\App\Http\Controllers\Admin\PageContentController::class, 'update']);
 });
 
 });
