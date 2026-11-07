@@ -1,0 +1,80 @@
+name: Deploy — Production (api.rowwadhimam.org)
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Never run two deploys at once; a newer push waits for the running one.
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+env:
+  SSH_HOST: 141.136.43.197
+  SSH_PORT: 65002
+  APP_DIR: /home/u712088840/domains/api.rowwadhimam.org/public_html
+
+jobs:
+  deploy:
+    name: Upload files and run post-deploy commands
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install rsync and sshpass
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq rsync sshpass
+
+      # No --delete: files that only exist on the server (.env, uploaded
+      # images, the root .htaccess, vendor/) must survive every deploy.
+      - name: Upload files (rsync)
+        env:
+          SSHPASS: ${{ secrets.SSH_PASSWORD }}
+        run: |
+          sshpass -e rsync -az \
+            --exclude='.git' \
+            --exclude='.github' \
+            --exclude='node_modules' \
+            --exclude='vendor' \
+            --exclude='.env' \
+            --exclude='.env.*' \
+            --exclude='*.sqlite*' \
+            --exclude='storage/app/public/*' \
+            --exclude='storage/app/private/*' \
+            --exclude='storage/framework/cache/*' \
+            --exclude='storage/framework/sessions/*' \
+            --exclude='storage/framework/views/*' \
+            --exclude='storage/logs/*' \
+            --exclude='tests' \
+            -e "ssh -p ${SSH_PORT} -o StrictHostKeyChecking=no" \
+            ./ \
+            "${{ secrets.SSH_USER }}@${SSH_HOST}:${APP_DIR}/"
+
+      # Any failing step fails the run (set -e), so a broken composer install
+      # or migration shows up as a red deploy instead of a silent green one.
+      - name: Install dependencies, migrate, rebuild caches
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ env.SSH_HOST }}
+          port: ${{ env.SSH_PORT }}
+          username: ${{ secrets.SSH_USER }}
+          password: ${{ secrets.SSH_PASSWORD }}
+          script: |
+            set -e
+            cd ${{ env.APP_DIR }}
+
+            composer install --no-interaction --prefer-dist --optimize-autoloader --no-dev
+
+            # Applies only new migrations. Seeders are deliberately not run:
+            # they would re-insert/overwrite production data.
+            php artisan migrate --force
+
+            php artisan storage:link 2>/dev/null || true   # already exists after the first deploy
+            php artisan optimize:clear
+            php artisan config:cache
+            php artisan route:cache
+            chmod -R 775 storage bootstrap/cache
+
+            echo "Deployed $(date -u '+%Y-%m-%d %H:%M UTC') — https://api.rowwadhimam.org"
