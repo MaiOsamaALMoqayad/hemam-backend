@@ -28,8 +28,15 @@ $link = fn (int $max = 60) => ['type' => 'link', 'max' => $max];
 $icon = ['type' => 'link', 'label' => false];
 $image = fn (int $width) => ['type' => 'image', 'width' => $width];
 
+// The coloured banner at the top of each inner page: page.<slug>.title / .subtitle.
+$banners = [];
+foreach (['about', 'contact', 'donate', 'join', 'programs', 'projects', 'expert', 'khawater', 'reviews'] as $slug) {
+    $banners["page.$slug.title"] = $text(100);
+    $banners["page.$slug.subtitle"] = $text(300);
+}
+
 return [
-    'keys' => [
+    'keys' => $banners + [
         // --- Site-wide ---
         'site.logo'     => $image(400),
         'site.phone'    => $text(30),
@@ -94,6 +101,29 @@ return [
         'footer.social.facebook'  => $icon,
         'footer.social.instagram' => $icon,
         'footer.social.youtube'   => $icon,
+
+        // --- About page (its goal list is the `goals` table) ---
+        'about.story.title'   => $text(100),
+        'about.story.p1'      => $text(2000),
+        'about.story.p2'      => $text(1000),
+        'about.vision.title'  => $text(50),
+        'about.vision.text'   => $text(300),
+        'about.mission.title' => $text(50),
+        'about.mission.text'  => $text(300),
+        'about.values.title'  => $text(50),
+        'about.values.text'   => $text(300),
+        'about.goals.title'   => $text(100),
+
+        // --- Contact page (phone/email/address are the site.* keys) ---
+        'contact.phone_label'   => $text(50),
+        'contact.email_label'   => $text(50),
+        'contact.address_label' => $text(50),
+        'contact.expert_title'  => $text(50),
+        'contact.expert_link'   => $link(40),
+
+        // --- Donate page ---
+        'donate.form_title' => $text(100),
+        'donate.note'       => $text(300),
     ],
 
     // Icon names (lucide-react) offered for cards: the homepage goal cards

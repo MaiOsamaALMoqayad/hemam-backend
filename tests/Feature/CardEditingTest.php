@@ -35,6 +35,7 @@ class CardEditingTest extends TestCase
                 'database/migrations/2025_11_29_120749_create_trainers_table.php',
                 'database/migrations/2025_11_29_120815_create_statistics_table.php',
                 'database/migrations/2026_05_17_203815_create_partners_table.php',
+                'database/migrations/2026_05_20_152749_create_goals_table.php',
                 'database/migrations/2026_11_07_000001_create_page_contents_table.php',
                 'database/migrations/2026_11_08_000001_add_order_index_to_statistics_table.php',
                 'database/migrations/2026_11_08_000002_import_builtin_partner_logos.php',
@@ -168,6 +169,19 @@ class CardEditingTest extends TestCase
 
         $this->postJson('/api/admin/reorder/trainers', ['ids' => [$b->id, $a->id]])->assertOk();
         $this->assertSame(['بكر', 'أحمد'], array_column($this->getJson('/api/v1/trainers')->json('data'), 'name'));
+    }
+
+    public function test_about_page_goals_are_reordered(): void
+    {
+        $this->actingAsAdmin();
+
+        foreach (['أول', 'ثانٍ', 'ثالث'] as $text) {
+            $this->postJson('/api/admin/goals', ['text' => $text])->assertCreated();
+        }
+        $ids = \App\Models\Goal::orderBy('order_index')->pluck('id')->all();
+
+        $this->postJson('/api/admin/reorder/goals', ['ids' => [$ids[1], $ids[2], $ids[0]]])->assertOk();
+        $this->assertSame(['ثانٍ', 'ثالث', 'أول'], array_column($this->getJson('/api/v1/goals')->json('data'), 'text'));
     }
 
     public function test_guests_cannot_reorder_or_update(): void

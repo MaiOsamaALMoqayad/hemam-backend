@@ -195,7 +195,7 @@ Route::prefix('admin')->group(function () {
         // --- Page content (in-place editing) ---
         Route::put('/content', [\App\Http\Controllers\Admin\PageContentController::class, 'update']);
         Route::post('/content/image', [\App\Http\Controllers\Admin\PageContentController::class, 'uploadImage']);
-        // Card order (in-place editing): statistics, partners, trainers
+        // Card order (in-place editing): goals, statistics, partners, trainers
         Route::post('/reorder/{resource}', \App\Http\Controllers\Admin\ReorderController::class);
 });
 

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Goal;
 use App\Models\Partner;
 use App\Models\Statistics;
 use App\Models\Trainer;
@@ -15,6 +16,7 @@ class ReorderController extends Controller
 {
     /** resource => [model, order column, cache keys to forget] */
     private const RESOURCES = [
+        'goals'      => [Goal::class, 'order_index', []], // the about page's goals
         'statistics' => [Statistics::class, 'order_index', []],
         'partners'   => [Partner::class, 'order_index', []],
         'trainers'   => [Trainer::class, 'order', ['trainers:all']],
