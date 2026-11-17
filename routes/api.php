@@ -86,6 +86,8 @@ Route::prefix('v1')->group(function () {
 Route::prefix('admin')->group(function () {
     // Public Admin Routes
     Route::post('/login', [AuthController::class, 'login'])->name('login');
+    // Cross-site login: trade an academy token for a site admin token.
+    Route::post('/sso/exchange', [AuthController::class, 'ssoExchange'])->middleware('throttle:10,1,sso-exchange');
 
     // Protected Admin Routes
     Route::middleware(['auth:sanctum'])->group(function () {
