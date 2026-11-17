@@ -35,4 +35,10 @@ return [
         ],
     ],
 
+    // Cross-site login with the academy (hemam-academy-api).
+    // See App\Support\AcademySso.
+    'academy_sso' => [
+        'api_url' => env('ACADEMY_API_URL', 'https://academy-api.rowwadhimam.org'),
+    ],
+
 ];

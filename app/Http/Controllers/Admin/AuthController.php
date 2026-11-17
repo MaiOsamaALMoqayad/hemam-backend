@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Support\AcademySso;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\{Hash, Log, Cookie};
 use Illuminate\Validation\ValidationException;
@@ -124,6 +125,44 @@ class AuthController extends Controller
                 'id' => $request->user()->id,
                 'name' => $request->user()->name,
                 'email' => $request->user()->email,
+                // Lets the academy confirm the cross-site link from its side
+                // too (see App\Support\AcademySso).
+                'academy_user_id' => $request->user()->academy_user_id,
+            ],
+        ]);
+    }
+
+    /**
+     * Cross-site login: trade a valid academy token for a site admin token.
+     * Only for accounts linked on both sides (`php artisan sso:link`).
+     */
+    public function ssoExchange(Request $request)
+    {
+        $data = $request->validate(['academy_token' => ['required', 'string', 'max:255']]);
+
+        $user = AcademySso::resolveUser($data['academy_token']);
+        if (! $user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'هذا الحساب غير مربوط بحساب في لوحة إدارة الموقع.',
+            ], 403);
+        }
+
+        $token = $user->createToken('sso', ['*'], now()->addDays(AcademySso::TOKEN_DAYS))->plainTextToken;
+
+        Log::info('SSO: site token issued from an academy session', [
+            'user_id' => $user->id,
+            'academy_user_id' => $user->academy_user_id,
+            'ip' => $request->ip(),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'token' => $token,
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
             ],
         ]);
     }
